@@ -1,0 +1,185 @@
+CREATE TABLE compositions
+(
+    composition_id integer GENERATED ALWAYS AS IDENTITY,
+    title character varying(64) NOT NULL,
+    duration interval NOT NULL,
+    lyrics text,
+    path_to_file text NOT NULL,
+    times_listened bigint NOT NULL DEFAULT 0,
+    PRIMARY KEY (composition_id)
+);
+
+CREATE TABLE performers
+(
+    performer_id integer GENERATED ALWAYS AS IDENTITY,
+    pseudonym character varying(64) NOT NULL,
+    full_name character varying(128),
+    birth_date date,
+    PRIMARY KEY (performer_id)
+);
+
+CREATE TABLE users
+(
+    user_id integer GENERATED ALWAYS AS IDENTITY,
+    username character varying(16) NOT NULL,
+    password_hash character varying(65) NOT NULL,
+    registration_date date NOT NULL,
+    full_name character varying(65),
+    birth_date date,
+    sex char,
+    PRIMARY KEY (user_id)
+);
+
+CREATE TABLE playlists
+(
+    playlist_id integer GENERATED ALWAYS AS IDENTITY,
+    creator_id integer,
+    title character varying(32) NOT NULL,
+    privacy character varying(16) NOT NULL,
+    PRIMARY KEY (playlist_id),
+    FOREIGN KEY (creator_id)
+        REFERENCES users (user_id)
+	ON DELETE SET NULL
+);
+
+CREATE TABLE albums
+(
+    album_id integer GENERATED ALWAYS AS IDENTITY,
+    title character varying(32) NOT NULL,
+    release_date date,
+    PRIMARY KEY (album_id)
+);
+
+CREATE TABLE perf_comp_links
+(
+    link_id integer GENERATED ALWAYS AS IDENTITY,
+    performer_id integer NOT NULL,
+    composition_id integer NOT NULL,
+    PRIMARY KEY (link_id),
+    FOREIGN KEY (composition_id)
+        REFERENCES compositions (composition_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (performer_id)
+        REFERENCES performers (performer_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE plist_comp_links
+(
+    link_id integer GENERATED ALWAYS AS IDENTITY,
+    playlist_id integer NOT NULL,
+    composition_id integer NOT NULL,
+    PRIMARY KEY (link_id),
+    FOREIGN KEY (composition_id)
+        REFERENCES compositions (composition_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (playlist_id)
+        REFERENCES playlists (playlist_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE album_comp_links
+(
+    link_id integer GENERATED ALWAYS AS IDENTITY,
+    album_id integer NOT NULL,
+    composition_id integer NOT NULL,
+    PRIMARY KEY (link_id),
+    FOREIGN KEY (album_id)
+        REFERENCES albums (album_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (composition_id)
+        REFERENCES compositions (composition_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE user_saved_plists
+(
+    link_id integer GENERATED ALWAYS AS IDENTITY,
+    playlist_id integer NOT NULL,
+    user_id integer NOT NULL,
+    PRIMARY KEY (link_id),
+    FOREIGN KEY (playlist_id)
+        REFERENCES playlists (playlist_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE user_saved_albums
+(
+    link_id integer GENERATED ALWAYS AS IDENTITY,
+    album_id integer NOT NULL,
+    user_id integer NOT NULL,
+    PRIMARY KEY (link_id),
+    FOREIGN KEY (album_id)
+        REFERENCES albums (album_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE compostitions_rating
+(
+    rating_id bigint GENERATED ALWAYS AS IDENTITY,
+    composition_id integer NOT NULL,
+    user_id integer NOT NULL,
+    satisfied bool NOT NULL,
+    rating_date date NOT NULL,
+    PRIMARY KEY (rating_id),
+    FOREIGN KEY (composition_id)
+        REFERENCES compositions (composition_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE performers_rating
+(
+    rating_id bigint GENERATED ALWAYS AS IDENTITY,
+    performer_id integer NOT NULL,
+    user_id integer NOT NULL,
+    satisfied bool NOT NULL,
+    rating_date date NOT NULL,
+    PRIMARY KEY (rating_id),
+    FOREIGN KEY (performer_id)
+        REFERENCES performers (performer_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE playlists_rating
+(
+    rating_id bigint GENERATED ALWAYS AS IDENTITY,
+    playlist_id integer NOT NULL,
+    user_id integer NOT NULL,
+    satisfied bool NOT NULL,
+    rating_date date NOT NULL,
+    PRIMARY KEY (rating_id),
+    FOREIGN KEY (playlist_id)
+        REFERENCES playlists (playlist_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE albums_rating
+(
+    rating_id bigint GENERATED ALWAYS AS IDENTITY,
+    album_id integer NOT NULL,
+    user_id integer NOT NULL,
+    satisfied bool NOT NULL,
+    rating_date date NOT NULL,
+    PRIMARY KEY (rating_id),
+    FOREIGN KEY (album_id)
+        REFERENCES albums (album_id)
+	ON DELETE CASCADE,
+    FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+	ON DELETE CASCADE
+);
