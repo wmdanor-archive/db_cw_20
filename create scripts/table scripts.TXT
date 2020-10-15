@@ -2,11 +2,22 @@ CREATE TABLE compositions
 (
     composition_id integer GENERATED ALWAYS AS IDENTITY,
     title character varying(64) NOT NULL,
-    duration interval NOT NULL,
+    duration smallint NOT NULL,
     lyrics text,
     path_to_file text NOT NULL,
     times_listened bigint NOT NULL DEFAULT 0,
     PRIMARY KEY (composition_id)
+);
+
+CREATE TABLE listening_history
+(
+    record_id integer GENERATED ALWAYS AS IDENTITY,
+    user_id integer,
+    listening_date date NOT NULL,
+    PRIMARY KEY (record_id),
+    FOREIGN KEY (user_id)
+	REFERENCES users (user_id)
+	ON DELETE SET NULL
 );
 
 CREATE TABLE performers
@@ -30,16 +41,25 @@ CREATE TABLE users
     PRIMARY KEY (user_id)
 );
 
+CRATE TABLE playlists_privacy
+(
+    privacy_id integer GENERATED ALWASYS AS IDENTITY,
+    privacy_type character varying(16) NOT NULL
+    PRIMARY KEY (privacy_id)
+);
+
 CREATE TABLE playlists
 (
     playlist_id integer GENERATED ALWAYS AS IDENTITY,
     creator_id integer,
     title character varying(32) NOT NULL,
-    privacy character varying(16) NOT NULL,
+    privacy_id integer NOT NULL,
     PRIMARY KEY (playlist_id),
     FOREIGN KEY (creator_id)
         REFERENCES users (user_id)
-	ON DELETE SET NULL
+	ON DELETE SET NULL,
+    FOREIGN KEY (privacy_id)
+	REFERENCES playlists_privacy (privacy_id)
 );
 
 CREATE TABLE albums
