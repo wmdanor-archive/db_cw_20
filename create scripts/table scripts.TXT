@@ -9,16 +9,9 @@ CREATE TABLE compositions
     PRIMARY KEY (composition_id)
 );
 
-CREATE TABLE listening_history
-(
-    record_id integer GENERATED ALWAYS AS IDENTITY,
-    user_id integer,
-    listening_date date NOT NULL,
-    PRIMARY KEY (record_id),
-    FOREIGN KEY (user_id)
-	REFERENCES users (user_id)
-	ON DELETE SET NULL
-);
+COMMENT ON COLUMN compositions.times_listened
+    IS 'DO NOT SET WHILE CREATING
+DO NOT UPDATE';
 
 CREATE TABLE performers
 (
@@ -32,20 +25,37 @@ CREATE TABLE performers
 CREATE TABLE users
 (
     user_id integer GENERATED ALWAYS AS IDENTITY,
-    username character varying(16) NOT NULL,
+    username character varying(16) NOT NULL UNIQUE,
     password_hash character varying(65) NOT NULL,
     registration_date date NOT NULL,
     full_name character varying(65),
     birth_date date,
     sex char,
     PRIMARY KEY (user_id)
+	INCLUDE(username)
 );
 
-CRATE TABLE playlists_privacy
+CREATE TABLE listening_history
 (
-    privacy_id integer GENERATED ALWASYS AS IDENTITY,
-    privacy_type character varying(16) NOT NULL
+    record_id bigint GENERATED ALWAYS AS IDENTITY,
+    user_id integer,
+    composition_id integer NOT NULL,
+    listening_date date NOT NULL,
+    PRIMARY KEY (record_id),
+    FOREIGN KEY (user_id)
+	REFERENCES users (user_id)
+	ON DELETE SET NULL,
+    FOREIGN KEY (composition_id)
+	REFERENCES compositions (composition_id)
+	ON DELETE CASCADE
+);
+
+CREATE TABLE playlists_privacy
+(
+    privacy_id integer GENERATED ALWAYS AS IDENTITY,
+    privacy_type character varying(16) NOT NULL UNIQUE,
     PRIMARY KEY (privacy_id)
+	INCLUDE(privacy_type)
 );
 
 CREATE TABLE playlists
@@ -60,6 +70,7 @@ CREATE TABLE playlists
 	ON DELETE SET NULL,
     FOREIGN KEY (privacy_id)
 	REFERENCES playlists_privacy (privacy_id)
+	ON DELETE RESTRICT
 );
 
 CREATE TABLE albums
@@ -203,3 +214,46 @@ CREATE TABLE albums_rating
         REFERENCES users (user_id)
 	ON DELETE CASCADE
 );
+
+
+
+CREATE FUNCTION secondary_history_adding() RETURNS TRIGGER as $$
+BEGIN
+	UPDATE compositions
+		SET times_listened = times_listened + 1
+		WHERE compositions.composition_id = NEW.composition_id;
+	RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER history_adding
+    AFTER INSERT ON listening_history
+	FOR EACH ROW EXECUTE PROCEDURE secondary_history_adding();
+
+
+
+CREATE FUNCTION secondary_history_deleting() RETURNS TRIGGER as $$
+BEGIN
+	UPDATE compositions
+		SET times_listened = times_listened - 1
+		WHERE compositions.composition_id = NEW.composition_id;
+	RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER history_deleting
+    AFTER DELETE ON listening_history
+	FOR EACH ROW EXECUTE PROCEDURE secondary_history_deleting();
+
+
+
+CREATE FUNCTION secondary_history_updating() RETURNS TRIGGER as $$
+BEGIN
+	RAISE EXCEPTION 'This table rows can be only inserted or deleted';
+	RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER history_updating
+    BEFORE UPDATE ON listening_history
+	FOR EACH ROW EXECUTE PROCEDURE secondary_history_updating();

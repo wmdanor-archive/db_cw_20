@@ -1,0 +1,12 @@
+insert into compositions(title, duration, path_to_file)
+select 'c'||s.a as character , floor(random()* (300-90 + 1) + 90) , 'p'||s.a as character from generate_series(1, 100000) as s(a)
+
+insert into performers(pseudonym, birth_date)
+select 'p'||s.a as character , (current_date - floor(random()* (21900-7300+ 1) + 7300)*('1 day')::interval)::date from generate_series(1, 5000) as s(a)
+
+insert into users(username, password_hash, registration_date)
+select 'u'||s.a as character , 'ph'||s.a as character, 
+(current_date - floor(random()* (365-0+ 1) + 0)*('1 day')::interval)::date from generate_series(1, 1000) as s(a)
+
+insert into listening_history(user_id, composition_id, listening_date)	// dodelatb
+select floor(random()* (select user_id from users), floor(random()* (11-2 + 1) + 2), current_date from generate_series(1, 100)
