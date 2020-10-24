@@ -3,6 +3,7 @@ CREATE TABLE compositions
     composition_id integer GENERATED ALWAYS AS IDENTITY,
     title character varying(64) NOT NULL,
     duration smallint NOT NULL,
+    release_year smallint,
     lyrics text,
     path_to_file text NOT NULL,
     times_listened bigint NOT NULL DEFAULT 0,
@@ -18,7 +19,7 @@ CREATE TABLE performers
     performer_id integer GENERATED ALWAYS AS IDENTITY,
     pseudonym character varying(64) NOT NULL,
     full_name character varying(128),
-    birth_date date,
+    birth_year smallint,
     PRIMARY KEY (performer_id)
 );
 
@@ -77,7 +78,7 @@ CREATE TABLE albums
 (
     album_id integer GENERATED ALWAYS AS IDENTITY,
     title character varying(32) NOT NULL,
-    release_date date,
+    release_year smallint,
     PRIMARY KEY (album_id)
 );
 
