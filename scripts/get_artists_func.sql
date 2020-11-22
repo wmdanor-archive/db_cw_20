@@ -110,9 +110,20 @@ return query execute
 end;
 $$ language plpgsql called on null input;
 
-
-
-create or replace function get_artists -- modify for times listened
+-- orders
+-- 1 - id
+-- 2 - name
+-- 3 - type
+-- 4 - gender
+-- 5 - begin_date
+-- 6 - end_date
+-- 7 - times_listened
+-- 8 - times_rated
+-- 9 - average_rating
+-- 10 - playlists_belong_number
+-- 11 - albums_belong_number
+-- asc/desc?
+create or replace function get_artists
 (
 	artists_ids integer array,
 	attribute_filter artists_attributes_filter,
@@ -123,12 +134,14 @@ create or replace function get_artists -- modify for times listened
 	playlists_toggle boolean,
 	playlists_filter compositions_collections_statistics_filter,
 	albums_toggle boolean, 
-	albums_filter compositions_collections_statistics_filter
+	albums_filter compositions_collections_statistics_filter,
+	pagination pagination_filter,
+	orders integer array default array[1]
 )
 returns table
 (
     artist_id integer,
-    name text,
+    name character varying(64),
     type character varying(16),
     gender character varying(32),
     begin_date_year smallint,
@@ -151,10 +164,10 @@ hist_join text := '(select null::int, null::bigint as times_listened) hist on tr
 rate_join text := '(select null::int, null::bigint as times_rated, null::numeric as avg_rating) rate on true';
 plist_join text := '(select null::int, null::bigint as belongs_number) plist_belong on true';
 album_join text := '(select null::int, null::bigint as belongs_number) album_belong on true';
-ftq_name text := 'artists.name::text';
-ftq_comment text := 'artists.comment';
+ftq_comment text := 'artists.comment, null::text';
 ftq_where text := 'COALESCE(artists.name LIKE ''%%''||$1||''%%'', true)';
-ftq_rank text := 'artist_id ASC';
+ftq_rank text := '';
+orders_text text := ' artist_id ASC';
 begin
 
 if attribute_filter.begin_date_from is not null or attribute_filter.begin_date_to is not null or 
@@ -162,10 +175,9 @@ attribute_filter.end_date_from is not null or attribute_filter.end_date_to is no
 attribute_filter.genders is not null then raise exception 'Not implemented';
 end if;
 if attribute_filter.search_comments and attribute_filter.name_comment is not null then
-ftq_name := 'ts_headline(artists.name, plainto_tsquery($1))';
-ftq_comment := 'ts_headline(artists.comment, plainto_tsquery($1))';
-ftq_where := 'make_tsvector(artists.name, artists.comment) @@ plainto_tsquery($1)';
-ftq_rank := 'ts_rank(make_tsvector(artists.name, artists.comment), plainto_tsquery($1)) DESC';
+ftq_comment := 'artists.comment, ts_headlineartists.name ||''\n''|| artists.comment, plainto_tsquery($1))';
+ftq_where := 'artists.search_tsv @@ plainto_tsquery($1)';
+ftq_rank := ' ts_rank(artists.search_tsv), plainto_tsquery($1)) DESC,';
 end if;
 
 if history_toggle then
@@ -181,7 +193,7 @@ if albums_toggle then
 album_join := 'get_artists_albums_statistics($12, $11) AS album_belong ON artists.artist_id = album_belong.artist_id';
 end if;
 return query execute
-	'SELECT artists.artist_id, '|| ftq_name ||', artist_types.name,
+	'SELECT artists.artist_id, artists.name, artist_types.name,
 	genders.name, artists.begin_date_year, artists.begin_date_month,
 	artists.begin_date_day, artists.end_date_year, artists.end_date_month,
 	artists.end_date_day, '|| ftq_comment ||',
@@ -198,11 +210,13 @@ return query execute
 	COALESCE(artists.artist_id = ANY($12), true) AND
 	'|| ftq_where ||' AND
 	COALESCE(artist_types.name = ANY($2), true)
-	ORDER BY ' || ftq_rank
+	ORDER BY' || ftq_rank || orders_text || '
+	OFFSET $13 LIMIT $14'
 	using attribute_filter.name_comment, attribute_filter.types, attribute_filter.genders,
 	attribute_filter.begin_date_from, attribute_filter.begin_date_to,
 	attribute_filter.end_date_from, attribute_filter.end_date_to,
-	history_filters, rating_filter, playlists_filter, albums_filter, artists_ids;
+	history_filters, rating_filter, playlists_filter, albums_filter, artists_ids,
+	pagination.offset_count, pagination.page_size;
 end;
 $$ language plpgsql called on null input;
 
@@ -224,5 +238,6 @@ select * from get_artists( null,
 	true,
 	row(null, null, null, null),
 	true,
-	row(null, null, null, null)
+	row(null, null, null, null),
+	row(null, null)
 )
