@@ -1,26 +1,75 @@
+-- CREATE TABLE areas
+-- (
+--     area_id integer GENERATED ALWAYS AS IDENTITY,
+--     name character varying(64),
+--     begin_date date, 
+--     end_date date,
+--     comment
+-- );
+
+CREATE TABLE artist_types
+(
+    type_id smallint GENERATED ALWAYS AS IDENTITY,
+    name character varying(32) UNIQUE,
+    PRIMARY KEY (type_id)
+	INCLUDE (name)
+);
+
+INSERT INTO artist_types (name) 
+VALUES ('person'), ('group'), ('orchestra'), ('choir'), ('character'), ('other');
+
+CREATE TABLE genders
+(
+    gender_id smallint GENERATED ALWAYS AS IDENTITY,
+    name character varying(32) UNIQUE,
+    PRIMARY KEY (gender_id)
+	INCLUDE (name)
+);
+
+INSERT INTO genders (name)
+VALUES ('male'), ('female'), ('other');
+
+CREATE TABLE artists
+(
+    artist_id integer GENERATED ALWAYS AS IDENTITY,
+    name character varying(64) NOT NULL,
+    type_id smallint NOT NULL,
+    gender_id smallint,
+    begin_date_year smallint,
+    begin_date_month smallint,
+    begin_date_day smallint,
+    end_date_year smallint,
+    end_date_month smallint,
+    end_date_day smallint,
+--     begin_area integer,
+--     end_area integer,
+    comment text,
+	search_tsv tsvector,
+    PRIMARY KEY (artist_id),
+    FOREIGN KEY (type_id)
+	REFERENCES artist_types (type_id)
+	ON DELETE RESTRICT,
+    FOREIGN KEY (gender_id)
+	REFERENCES genders (gender_id)
+	ON DELETE RESTRICT
+);
+
 CREATE TABLE compositions
 (
     composition_id integer GENERATED ALWAYS AS IDENTITY,
     title character varying(64) NOT NULL,
+    artist_id integer,
     duration smallint NOT NULL,
     release_year smallint,
+    release_month smallint,
+    release_day smallint,
     lyrics text,
     path_to_file text NOT NULL,
-    times_listened bigint NOT NULL DEFAULT 0,
-    PRIMARY KEY (composition_id)
-);
-
-COMMENT ON COLUMN compositions.times_listened
-    IS 'DO NOT SET WHILE CREATING
-DO NOT UPDATE';
-
-CREATE TABLE performers
-(
-    performer_id integer GENERATED ALWAYS AS IDENTITY,
-    pseudonym character varying(64) NOT NULL,
-    full_name character varying(128),
-    birth_year smallint,
-    PRIMARY KEY (performer_id)
+	search_tsv tsvector,
+    PRIMARY KEY (composition_id),
+    FOREIGN KEY (artist_id)
+	REFERENCES artists (artist_id)
+	ON DELETE SET NULL
 );
 
 CREATE TABLE users
@@ -29,23 +78,27 @@ CREATE TABLE users
     username character varying(16) NOT NULL UNIQUE,
     password_hash character varying(65) NOT NULL,
     registration_date date NOT NULL,
+    is_active boolean NOT NULL DEFAULT TRUE,
     full_name character varying(65),
     birth_date date,
-    sex char,
+    gender_id smallint,
     PRIMARY KEY (user_id)
-	INCLUDE(username)
+	INCLUDE(username),
+    FOREIGN KEY (gender_id)
+	REFERENCES genders (gender_id)
+	ON DELETE RESTRICT
 );
 
 CREATE TABLE listening_history
 (
     record_id bigint GENERATED ALWAYS AS IDENTITY,
-    user_id integer,
+    user_id integer NOT NULL,
     composition_id integer NOT NULL,
     listening_date date NOT NULL,
     PRIMARY KEY (record_id),
     FOREIGN KEY (user_id)
 	REFERENCES users (user_id)
-	ON DELETE SET NULL,
+	ON DELETE CASCADE,
     FOREIGN KEY (composition_id)
 	REFERENCES compositions (composition_id)
 	ON DELETE CASCADE
@@ -58,6 +111,9 @@ CREATE TABLE playlists_privacy
     PRIMARY KEY (privacy_id)
 	INCLUDE(privacy_type)
 );
+
+INSERT INTO playlists_privacy (privacy_type)
+VALUES ('public'), ('unlisted'), ('private');
 
 CREATE TABLE playlists
 (
@@ -79,21 +135,9 @@ CREATE TABLE albums
     album_id integer GENERATED ALWAYS AS IDENTITY,
     title character varying(32) NOT NULL,
     release_year smallint,
+    release_month smallint,
+    release_day smallint,
     PRIMARY KEY (album_id)
-);
-
-CREATE TABLE perf_comp_links
-(
-    link_id integer GENERATED ALWAYS AS IDENTITY,
-    performer_id integer NOT NULL,
-    composition_id integer NOT NULL,
-    PRIMARY KEY (link_id),
-    FOREIGN KEY (composition_id)
-        REFERENCES compositions (composition_id)
-	ON DELETE CASCADE,
-    FOREIGN KEY (performer_id)
-        REFERENCES performers (performer_id)
-	ON DELETE CASCADE
 );
 
 CREATE TABLE plist_comp_links
@@ -102,6 +146,7 @@ CREATE TABLE plist_comp_links
     playlist_id integer NOT NULL,
     composition_id integer NOT NULL,
     PRIMARY KEY (link_id),
+    UNIQUE (playlist_id, composition_id),
     FOREIGN KEY (composition_id)
         REFERENCES compositions (composition_id)
 	ON DELETE CASCADE,
@@ -116,6 +161,7 @@ CREATE TABLE album_comp_links
     album_id integer NOT NULL,
     composition_id integer NOT NULL,
     PRIMARY KEY (link_id),
+    UNIQUE (album_id, composition_id),
     FOREIGN KEY (album_id)
         REFERENCES albums (album_id)
 	ON DELETE CASCADE,
@@ -130,6 +176,7 @@ CREATE TABLE user_saved_plists
     playlist_id integer NOT NULL,
     user_id integer NOT NULL,
     PRIMARY KEY (link_id),
+    UNIQUE (playlist_id, user_id),
     FOREIGN KEY (playlist_id)
         REFERENCES playlists (playlist_id)
 	ON DELETE CASCADE,
@@ -144,6 +191,7 @@ CREATE TABLE user_saved_albums
     album_id integer NOT NULL,
     user_id integer NOT NULL,
     PRIMARY KEY (link_id),
+    UNIQUE (album_id, user_id),
     FOREIGN KEY (album_id)
         REFERENCES albums (album_id)
 	ON DELETE CASCADE,
@@ -152,7 +200,7 @@ CREATE TABLE user_saved_albums
 	ON DELETE CASCADE
 );
 
-CREATE TABLE compostitions_rating
+CREATE TABLE compositions_rating
 (
     rating_id bigint GENERATED ALWAYS AS IDENTITY,
     composition_id integer NOT NULL,
@@ -160,24 +208,9 @@ CREATE TABLE compostitions_rating
     satisfied bool NOT NULL,
     rating_date date NOT NULL,
     PRIMARY KEY (rating_id),
+    UNIQUE (user_id, composition_id),
     FOREIGN KEY (composition_id)
         REFERENCES compositions (composition_id)
-	ON DELETE CASCADE,
-    FOREIGN KEY (user_id)
-        REFERENCES users (user_id)
-	ON DELETE CASCADE
-);
-
-CREATE TABLE performers_rating
-(
-    rating_id bigint GENERATED ALWAYS AS IDENTITY,
-    performer_id integer NOT NULL,
-    user_id integer NOT NULL,
-    satisfied bool NOT NULL,
-    rating_date date NOT NULL,
-    PRIMARY KEY (rating_id),
-    FOREIGN KEY (performer_id)
-        REFERENCES performers (performer_id)
 	ON DELETE CASCADE,
     FOREIGN KEY (user_id)
         REFERENCES users (user_id)
@@ -192,6 +225,7 @@ CREATE TABLE playlists_rating
     satisfied bool NOT NULL,
     rating_date date NOT NULL,
     PRIMARY KEY (rating_id),
+    UNIQUE (user_id, playlist_id),
     FOREIGN KEY (playlist_id)
         REFERENCES playlists (playlist_id)
 	ON DELETE CASCADE,
@@ -208,6 +242,7 @@ CREATE TABLE albums_rating
     satisfied bool NOT NULL,
     rating_date date NOT NULL,
     PRIMARY KEY (rating_id),
+    UNIQUE (user_id, album_id),
     FOREIGN KEY (album_id)
         REFERENCES albums (album_id)
 	ON DELETE CASCADE,
@@ -215,46 +250,3 @@ CREATE TABLE albums_rating
         REFERENCES users (user_id)
 	ON DELETE CASCADE
 );
-
-
-
-CREATE FUNCTION secondary_history_adding() RETURNS TRIGGER as $$
-BEGIN
-	UPDATE compositions
-		SET times_listened = times_listened + 1
-		WHERE compositions.composition_id = NEW.composition_id;
-	RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER history_adding
-    AFTER INSERT ON listening_history
-	FOR EACH ROW EXECUTE PROCEDURE secondary_history_adding();
-
-
-
-CREATE FUNCTION secondary_history_deleting() RETURNS TRIGGER as $$
-BEGIN
-	UPDATE compositions
-		SET times_listened = times_listened - 1
-		WHERE compositions.composition_id = NEW.composition_id;
-	RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER history_deleting
-    AFTER DELETE ON listening_history
-	FOR EACH ROW EXECUTE PROCEDURE secondary_history_deleting();
-
-
-
-CREATE FUNCTION secondary_history_updating() RETURNS TRIGGER as $$
-BEGIN
-	RAISE EXCEPTION 'This table rows can be only inserted or deleted';
-	RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER history_updating
-    BEFORE UPDATE ON listening_history
-	FOR EACH ROW EXECUTE PROCEDURE secondary_history_updating();

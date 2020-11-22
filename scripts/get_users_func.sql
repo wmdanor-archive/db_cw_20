@@ -1,0 +1,309 @@
+create or replace function get_users_history_statistics
+(users_ids integer array, filters users_history_statistics_filter)
+returns table(user_id integer, times_listened bigint)
+as $$
+declare
+any_or_all char(2) := '&&';
+begin
+if not filters.compositions_any then any_or_all = '@>';
+end if;
+return query execute 
+	'SELECT users.user_id, COUNT(listening_history)
+   	FROM users LEFT JOIN listening_history ON users.user_id = listening_history.user_id AND
+	COALESCE(users.user_id = ANY($6), true) AND
+	COALESCE(listening_date >= $1, true) AND
+ 	COALESCE(listening_date <= $2, true)
+   	GROUP BY users.user_id
+   	HAVING (
+		COALESCE(COUNT(listening_history) >= $3, true) AND
+		COALESCE(COUNT(listening_history) <= $4, true) AND
+		COALESCE(ARRAY_AGG(DISTINCT composition_id) ' || any_or_all || ' $5, true)
+	)
+	ORDER BY users.user_id'
+	using
+	filters.listening_date_from, filters.listening_date_to, filters.times_listened_from,
+	filters.times_listened_to, filters.compositions_list, users_ids;
+end;
+$$ language plpgsql called on null input;
+
+
+
+create or replace function get_users_compositions_rating_statistics
+(users_ids integer array, filters users_rating_statistics_filter)
+returns table(user_id integer, times_rated bigint, avg_rating numeric)
+as $$
+declare
+any_or_all char(2) := '&&';
+begin
+if not filters.rated_ids_any then any_or_all = '@>';
+end if;
+return query execute
+	'SELECT users.user_id, COUNT(compositions_rating), AVG(satisfied::integer) * 10
+	FROM users LEFT JOIN compositions_rating ON users.user_id = compositions_rating.user_id AND
+	COALESCE(users.user_id = ANY($8), true) AND
+	COALESCE(rating_date >= $1, true) AND
+	COALESCE(rating_date <= $2, true)
+	GROUP BY users.user_id
+   	HAVING (
+		COALESCE(COUNT(compositions_rating) >= $3, true) AND
+		COALESCE(COUNT(compositions_rating) <= $4, true) AND
+		COALESCE(AVG(satisfied::integer) * 10 >= $5, true) AND
+		COALESCE(AVG(satisfied::integer) * 10 <= $6, true) AND
+		COALESCE(ARRAY_AGG(DISTINCT composition_id) ' || any_or_all || ' $7, true)
+	)
+	ORDER BY user_id'
+	using filters.rating_date_from, filters.rating_date_to, filters.times_rated_from,
+	filters.times_rated_to, filters.average_rating_from, filters.average_rating_to,
+	filters.rated_ids_list, users_ids;
+end;
+$$ language plpgsql called on null input;
+
+
+
+create or replace function get_users_albums_rating_statistics
+(users_ids integer array, filters users_rating_statistics_filter)
+returns table(user_id integer, times_rated bigint, avg_rating numeric)
+as $$
+declare
+any_or_all char(2) := '&&';
+begin
+if not albums_any then any_or_all = '@>';
+end if;
+return query execute
+	'SELECT users.user_id, COUNT(albums_rating), AVG(satisfied::integer) * 10
+	FROM users LEFT JOIN albums_rating ON users.user_id = albums_rating.user_id AND
+	COALESCE(users.user_id = ANY($8), true) AND
+	COALESCE(rating_date >= $1, true) AND
+	COALESCE(rating_date <= $2, true)
+	GROUP BY users.user_id
+   	HAVING (
+		COALESCE(COUNT(albums_rating) >= $3, true) AND
+		COALESCE(COUNT(albums_rating) <= $4, true) AND
+		COALESCE(AVG(satisfied::integer) * 10 >= $5, true) AND
+		COALESCE(AVG(satisfied::integer) * 10 <= $6, true) AND
+		COALESCE(ARRAY_AGG(DISTINCT album_id) ' || any_or_all || ' $7, true)
+	)
+	ORDER BY user_id'
+	using filters.rating_date_from, filters.rating_date_to, filters.times_rated_from,
+	filters.times_rated_to, filters.average_rating_from, filters.average_rating_to,
+	filters.rated_ids_list, users_ids;
+end;
+$$ language plpgsql called on null input;
+
+
+
+create or replace function get_users_playlists_rating_statistics
+(users_ids integer array, filters users_rating_statistics_filter)
+returns table(user_id integer, times_rated bigint, avg_rating numeric)
+as $$
+declare
+any_or_all char(2) := '&&';
+begin
+if not playlists_any then any_or_all = '@>';
+end if;
+return query execute
+	'SELECT users.user_id, COUNT(playlists_rating), AVG(satisfied::integer) * 10
+	FROM users LEFT JOIN playlists_rating ON users.user_id = playlists_rating.user_id AND
+	COALESCE(users.user_id = ANY($8), true) AND
+	COALESCE(rating_date >= $1, true) AND
+	COALESCE(rating_date <= $2, true)
+	GROUP BY users.user_id
+   	HAVING (
+		COALESCE(COUNT(playlists_rating) >= $3, true) AND
+		COALESCE(COUNT(playlists_rating) <= $4, true) AND
+		COALESCE(AVG(satisfied::integer) * 10 >= $5, true) AND
+		COALESCE(AVG(satisfied::integer) * 10 <= $6, true) AND
+		COALESCE(ARRAY_AGG(DISTINCT playlist_id) ' || any_or_all || ' $7, true)
+	)
+	ORDER BY user_id'
+	using filters.rating_date_from, filters.rating_date_to, filters.times_rated_from,
+	filters.times_rated_to, filters.average_rating_from, filters.average_rating_to,
+	filters.rated_ids_list, users_ids;
+end;
+$$ language plpgsql called on null input;
+
+
+
+create or replace function get_users_saved_albums_statistics
+(users_ids integer array, filters users_saved_collections_statistics_filter)
+returns table(user_id integer, saved_number bigint)
+as $$
+declare
+any_or_all char(2) := '&&';
+begin
+if not filters.saved_ids_any then any_or_all = '@>';
+end if;
+return query execute
+	'SELECT users.user_id, COUNT(user_saved_albums)
+	FROM users LEFT JOIN user_saved_albums ON users.user_id = user_saved_albums.user_id
+	AND COALESCE(users.user_id = ANY($4), true)
+	GROUP BY users.user_id
+	HAVING (
+		COALESCE(COUNT(user_saved_albums) >= $1) AND
+		COALESCE(COUNT(user_saved_albums) <= $2) AND
+		COALESCE(ARRAY_AGG(DISTINCT album_id) ' || any_or_all || ' $3, true)
+	)
+	ORDER BY user_id'
+	using filters.saved_number_from, filters.saved_number_to, filters.saved_ids_list, users_ids;
+end;
+$$ language plpgsql called on null input;
+
+
+
+create or replace function get_users_saved_playlists_statistics
+(users_ids integer array, filters users_saved_collections_statistics_filter)
+returns table(user_id integer, saved_number bigint)
+as $$
+declare
+any_or_all char(2) := '&&';
+begin
+if not saved_ids_any then any_or_all = '@>';
+end if;
+return query execute
+	'SELECT users.user_id, COUNT(user_saved_playlists)
+	FROM users LEFT JOIN user_saved_playlists ON users.user_id = user_saved_playlists.user_id
+	AND COALESCE(users.user_id = ANY($4), true)
+	GROUP BY users.user_id
+	HAVING (
+		COALESCE(COUNT(user_saved_playlists) >= $1) AND
+		COALESCE(COUNT(user_saved_playlists) <= $2) AND
+		COALESCE(ARRAY_AGG(DISTINCT playlist_id) ' || any_or_all || ' $3, true)
+	)
+	ORDER BY user_id'
+	using filters.saved_number_from, filters.saved_number_to, filters.saved_ids_list, users_ids;
+end;
+$$ language plpgsql called on null input;
+
+
+
+create or replace function get_users
+(
+	users_ids integer array,
+	attribute_filter users_attributes_filter,
+	history_toggle boolean,
+	history_filters users_history_statistics_filter,
+	compositions_rating_toggle boolean,
+	compositions_rating_filter users_rating_statistics_filter,
+	albums_rating_toggle boolean,
+	albums_rating_filter users_rating_statistics_filter,
+	playlists_rating_toggle boolean,
+	playlists_rating_filter users_rating_statistics_filter,
+	saved_albums_toggle boolean,
+	saved_albums_filter users_saved_collections_statistics_filter,
+	saved_playlists_toggle boolean,
+	saved_playlists_filter users_saved_collections_statistics_filter
+)
+returns table
+(
+	user_id integer,
+    username character varying(16),
+    password_hash character varying(65),
+    registration_date date,
+    is_active boolean,
+    full_name character varying(65),
+    birth_date date,
+    gender character varying(32),
+	times_listened bigint,
+	times_compositions_rated bigint,
+	compositions_average_rating real,
+	times_albums_rated bigint,
+	albums_average_rating real,
+	times_playlists_rated bigint,
+	playlists_average_rating real,
+	albums_saved_number bigint,
+	playlists_saved_number bigint
+)
+as $$
+declare
+hist_join text := '(select null::int, null::bigint as times_listened) comp_hist on true';
+comp_rate_join text := '(select null::int, null::bigint as times_rated, null::numeric as avg_rating) comp_rate on true';
+album_rate_join text := '(select null::int, null::bigint as times_rated, null::numeric as avg_rating) album_rate on true';
+plist_rate_join text := '(select null::int, null::bigint as times_rated, null::numeric as avg_rating) plist_rate on true';
+saved_albums_join text := '(select null::int, null::bigint as saved_number) album_saved on true';
+saved_plists_join text := '(select null::int, null::bigint as saved_number) plist_saved on true';
+full_name_search_mode text := ' OR full_name IS NULL';
+birth_search_mode text := ' OR birth_date IS NULL';
+genders_search_mode text := ' OR genders.name IS NULL';
+begin
+if history_toggle then
+hist_join := 'get_users_history_statistics($15, $9) AS comp_hist ON users.user_id = comp_hist.user_id';
+end if;
+if compositions_rating_toggle then
+comp_rate_join := 'get_users_compositions_rating_statistics($15, $10) AS comp_rate ON users.user_id = comp_rate.user_id';
+end if;
+if albums_rating_toggle then
+plist_rate_join := 'get_users_albums_rating_statistics($15, $11) AS album_rate ON users.user_id = album_rate.user_id';
+end if;
+if playlists_rating_toggle then
+album_rate_join := 'get_users_playlists_rating_statistics($15, $12) AS plist_rate ON users.user_id = plist_rate.user_id';
+end if;
+if saved_albums_toggle then
+saved_albums_join := 'get_users_saved_albums_statistics($15, $13) AS album_saved ON users.user_id = album_saved.user_id';
+end if;
+if saved_playlists_toggle then
+saved_plists_join := 'get_users_saved_playlists_statistics($15, $14) AS plist_saved ON users.user_id = plist_saved.user_id';
+end if;
+
+if attribute_filter.full_name_exclude_nulls then
+full_name_search_mode := ' AND full_name IS NOT NULL';
+end if;
+if attribute_filter.birth_exclude_nulls then
+birth_search_mode := ' AND birth_date IS NOT NULL';
+end if;
+if attribute_filter.gender_exclude_nulls then
+genders_search_mode := ' AND genders.name IS NOT NULL';
+end if;
+
+return query execute
+	'SELECT users.user_id, users.username, users.password_hash,
+	users.registration_date, users.is_active, users.full_name,
+	users.birth_date, genders.name,
+	comp_hist.times_listened, comp_rate.times_rated, round(comp_rate.avg_rating, 2)::real,
+	plist_rate.times_rated, round(plist_rate.avg_rating, 2)::real,
+	album_rate.times_rated, round(album_rate.avg_rating, 2)::real,
+	plist_saved.saved_number, album_saved.saved_number
+	FROM users
+	LEFT JOIN genders ON users.gender_id = genders.gender_id
+	INNER JOIN ' || hist_join || '
+	INNER JOIN ' || comp_rate_join || '
+	INNER JOIN ' || album_rate_join || '
+	INNER JOIN ' || plist_rate_join || '
+	INNER JOIN ' || saved_albums_join || '
+	INNER JOIN ' || saved_plists_join || '
+	WHERE
+	COALESCE(users.user_id = ANY($15), true) AND
+	COALESCE(username LIKE ''%%''||$1||''%%'', true) AND
+	COALESCE(full_name LIKE ''%%''||$2||''%%'''|| full_name_search_mode ||', true) AND
+	COALESCE(registration_date >= $3, true) AND
+	COALESCE(registration_date <= $4, true) AND
+	COALESCE(birth_date >= $5'|| birth_search_mode ||', true) AND
+	COALESCE(birth_date <= $6'|| birth_search_mode ||', true) AND
+	COALESCE(genders.name = ANY($7)'|| genders_search_mode ||', true) AND
+	COALESCE(is_active = $8, true)
+	ORDER BY users.user_id'
+	using attribute_filter.username, attribute_filter.full_name,
+	attribute_filter.registration_from, attribute_filter.registration_to,
+	attribute_filter.birth_from, attribute_filter.birth_to,
+	attribute_filter.genders, attribute_filter.is_active,
+	history_filters, compositions_rating_filter,
+	albums_rating_filter, playlists_rating_filter,
+	saved_albums_filter, saved_playlists_filter,
+	users_ids;
+end;
+$$ language plpgsql called on null input;
+
+select * from get_users( null,
+	row(null, false, null, null, null, false, null, null, true, null, null),
+	true,
+	row(null, null, null, null, null, null),
+	false,
+	row(null, null, null, null, null, null, null, null),
+	false,
+	row(null, null, null, null, null, null, null, null),
+	false,
+	row(null, null, null, null, null, null, null, null),
+	false,
+	row(null, null, null, null),
+	false,
+	row(null, null, null, null)
+);
