@@ -111,12 +111,23 @@ end;
 $$ language plpgsql called on null input;
 
 
-
-create or replace function get_compositions -- modify for times listened
+-- orders
+-- 1 - composition_id
+-- 2 - title
+-- 3 - artist_id
+-- 4 - duration
+-- 5 - release_date
+-- 6 - times_listened
+-- 7 - times_rated
+-- 8 - average_rating
+-- 9 - playlists_belong_number
+-- 10 - albums_belong_number
+-- positive - asc
+-- negative - desc
+create or replace function get_compositions
 (
 	compositions_ids integer array,
 	attribute_filter compositions_attributes_filter,
-	-- artists_toglle boolean, -- not sure
 	history_toggle boolean,
 	history_filters compositions_history_statistics_filter,
 	rating_toggle boolean,
@@ -124,7 +135,9 @@ create or replace function get_compositions -- modify for times listened
 	playlists_toggle boolean,
 	playlists_filter compositions_collections_statistics_filter,
 	albums_toggle boolean,
-	albums_filter compositions_collections_statistics_filter
+	albums_filter compositions_collections_statistics_filter,
+	pagination pagination_filter,
+	orders integer array default array[1]
 )
 returns table
 (
@@ -137,6 +150,7 @@ returns table
     release_day smallint,
     lyrics text,
 	path_to_file text,
+	fulltext_highlight text,
 	times_listened bigint,
 	times_rated bigint,
 	average_rating real,
@@ -151,16 +165,35 @@ plist_join text := '(select null::int, null::bigint as belongs_number) plist_bel
 album_join text := '(select null::int, null::bigint as belongs_number) album_belong on true';
 artists_search_mode text := ' OR artist_id IS NULL';
 release_search_mode text := ' OR release_year IS NULL';
-title_lyrics_search text := '';
+ftq_head text := 'null::text';
+ftq_where text := 'COALESCE(compositions.title LIKE ''%%''||$1||''%%'', true)';
+ftq_rank text := '';
+orders_text text := '';
+orders_types constant text array := array[
+    'composition_id',
+    'title',
+    'artist_id',
+    'duration',
+    'release_date',
+    'times_listened',
+    'times_rated',
+    'average_rating',
+    'playlists_belong_number',
+    'albums_belong_number'
+];
+order_type integer;
 begin
+if attribute_filter.search_lyrics and attribute_filter.title_lyrics is not null then
+ftq_head := 'ts_headline(compositions.title ||''\n''|| compositions.lyrics, plainto_tsquery($1))';
+ftq_where := 'compositions.search_tsv @@ plainto_tsquery($1)';
+ftq_rank := 'ts_rank(compositions.search_tsv), plainto_tsquery($1)) DESC, ';
+end if;
+
 if attribute_filter.artists_ids_exclude_nulls then
 artists_search_mode := ' AND artist_id IS NOT NULL';
 end if;
 if attribute_filter.release_date_exclude_nulls then
 release_search_mode := ' AND release_year IS NOT NULL';
-end if;
-
-if attribute_filter.search_lyrics then raise exception 'Not implemented';
 end if;
 
 if history_toggle then
@@ -175,10 +208,27 @@ end if;
 if albums_toggle then
 album_join := 'get_compositions_albums_statistics($11, $10) AS album_belong ON compositions.composition_id = album_belong.composition_id';
 end if;
+
+if array_length(orders, 1) = 0 then
+	raise exception 'orders can not be empty';
+end if;
+foreach order_type in array orders
+loop
+	if order_type = 0 or abs(order_type) > 10 then
+		raise exception 'invalid order type value %', order_type;
+	end if;
+	if order_type > 0 then
+		orders_text := orders_text || orders_types[abs(order_type)] || ' ASC, ';
+	else
+		orders_text := orders_text || orders_types[abs(order_type)] || ' DESC, ';
+	end if;
+end loop;
+orders_text := rtrim(orders_text, ', ');
+
 return query execute
 	'SELECT compositions.composition_id, compositions.title, compositions.artist_id,
 	compositions.duration, compositions.release_year, compositions.release_month,
-	compositions.release_day, compositions.lyrics, compositions.path_to_file,
+	compositions.release_day, compositions.lyrics, compositions.path_to_file, '|| ftq_head ||',
 	hist.times_listened, rate.times_rated, round(rate.avg_rating, 2)::real, 
 	plist_belong.belongs_number, album_belong.belongs_number
 	FROM compositions
@@ -188,16 +238,18 @@ return query execute
 	INNER JOIN ' || album_join || '
 	WHERE
 	COALESCE(compositions.composition_id = ANY($11), true) AND
-	COALESCE(title LIKE ''%%''||$1||''%%'', true) AND
+	'|| ftq_where ||' AND
 	COALESCE(artist_id = ANY($2)'|| artists_search_mode ||', true) AND
 	COALESCE(duration >= $3, true) AND
 	COALESCE(duration <= $4, true) AND
 	COALESCE(compare_dates(release_year, release_month, release_day, $5) <= 0'|| release_search_mode ||', true) AND
 	COALESCE(compare_dates(release_year, release_month, release_day, $6) >= 0'|| release_search_mode ||', true)
-	ORDER BY compositions.composition_id'
+	ORDER BY '|| ftq_rank || orders_text ||'
+	OFFSET $12 LIMIT $13'
 	using attribute_filter.title_lyrics, attribute_filter.artists_ids, attribute_filter.duration_from,
 	attribute_filter.duration_to, attribute_filter.release_from, attribute_filter.release_to,
-	history_filters, rating_filter, playlists_filter, albums_filter, compositions_ids;
+	history_filters, rating_filter, playlists_filter, albums_filter, compositions_ids,
+	pagination.offset_count, pagination.page_size;
 end;
 $$ language plpgsql called on null input;
 
@@ -210,5 +262,6 @@ select * from get_compositions( null,
 	true,
 	row(null, null, null, null),
 	true,
-	row(null, null, null, null)
+	row(null, null, null, null),
+	row(null, null)
 )

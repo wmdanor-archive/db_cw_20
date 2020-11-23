@@ -111,7 +111,7 @@ end;
 $$ language plpgsql called on null input;
 
 -- orders
--- 1 - id
+-- 1 - artist_id
 -- 2 - name
 -- 3 - type
 -- 4 - gender
@@ -122,7 +122,8 @@ $$ language plpgsql called on null input;
 -- 9 - average_rating
 -- 10 - playlists_belong_number
 -- 11 - albums_belong_number
--- asc/desc?
+-- positive - asc
+-- negative - desc
 create or replace function get_artists
 (
 	artists_ids integer array,
@@ -164,10 +165,24 @@ hist_join text := '(select null::int, null::bigint as times_listened) hist on tr
 rate_join text := '(select null::int, null::bigint as times_rated, null::numeric as avg_rating) rate on true';
 plist_join text := '(select null::int, null::bigint as belongs_number) plist_belong on true';
 album_join text := '(select null::int, null::bigint as belongs_number) album_belong on true';
-ftq_comment text := 'artists.comment, null::text';
+ftq_head text := 'null::text';
 ftq_where text := 'COALESCE(artists.name LIKE ''%%''||$1||''%%'', true)';
 ftq_rank text := '';
-orders_text text := ' artist_id ASC';
+orders_text text := '';
+orders_types constant text array := array[
+    'artist_id',
+    'name',
+    'type',
+    'gender',
+    'begin_date',
+    'end_date',
+    'times_listened',
+    'times_rated',
+    'average_rating',
+    'playlists_belong_number',
+    'albums_belong_number'
+];
+order_type integer;
 begin
 
 if attribute_filter.begin_date_from is not null or attribute_filter.begin_date_to is not null or 
@@ -175,9 +190,9 @@ attribute_filter.end_date_from is not null or attribute_filter.end_date_to is no
 attribute_filter.genders is not null then raise exception 'Not implemented';
 end if;
 if attribute_filter.search_comments and attribute_filter.name_comment is not null then
-ftq_comment := 'artists.comment, ts_headlineartists.name ||''\n''|| artists.comment, plainto_tsquery($1))';
+ftq_head := 'ts_headline(artists.name ||''\n''|| artists.comment, plainto_tsquery($1))';
 ftq_where := 'artists.search_tsv @@ plainto_tsquery($1)';
-ftq_rank := ' ts_rank(artists.search_tsv), plainto_tsquery($1)) DESC,';
+ftq_rank := 'ts_rank(artists.search_tsv), plainto_tsquery($1)) DESC, ';
 end if;
 
 if history_toggle then
@@ -192,11 +207,28 @@ end if;
 if albums_toggle then
 album_join := 'get_artists_albums_statistics($12, $11) AS album_belong ON artists.artist_id = album_belong.artist_id';
 end if;
+
+if array_length(orders, 1) = 0 then
+	raise exception 'orders can not be empty';
+end if;
+foreach order_type in array orders
+loop
+	if order_type = 0 or abs(order_type) > 11 then
+		raise exception 'invalid order type value %', order_type;
+	end if;
+	if order_type > 0 then
+		orders_text := orders_text || orders_types[abs(order_type)] || ' ASC, ';
+	else
+		orders_text := orders_text || orders_types[abs(order_type)] || ' DESC, ';
+	end if;
+end loop;
+orders_text := rtrim(orders_text, ', ');
+
 return query execute
 	'SELECT artists.artist_id, artists.name, artist_types.name,
 	genders.name, artists.begin_date_year, artists.begin_date_month,
 	artists.begin_date_day, artists.end_date_year, artists.end_date_month,
-	artists.end_date_day, '|| ftq_comment ||',
+	artists.end_date_day, artists.comment, '|| ftq_head ||',
 	hist.times_listened, rate.times_rated, round(rate.avg_rating, 2)::real,
 	plist_belong.belongs_number, album_belong.belongs_number
 	FROM artists
@@ -210,7 +242,7 @@ return query execute
 	COALESCE(artists.artist_id = ANY($12), true) AND
 	'|| ftq_where ||' AND
 	COALESCE(artist_types.name = ANY($2), true)
-	ORDER BY' || ftq_rank || orders_text || '
+	ORDER BY '|| ftq_rank || orders_text ||'
 	OFFSET $13 LIMIT $14'
 	using attribute_filter.name_comment, attribute_filter.types, attribute_filter.genders,
 	attribute_filter.begin_date_from, attribute_filter.begin_date_to,
