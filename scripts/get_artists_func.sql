@@ -230,9 +230,12 @@ if attribute_filter.types is not null and array_length(attribute_filter.types, 1
 	types_ids := array[];
 	foreach type_temp in array attribute_filter.types
 	loop
-		if type_temp = 'public' then types_ids := types_ids || 1;
-		elsif type_temp = 'unlisted' then types_ids := types_ids || 2;
-		elsif type_temp = 'private' then types_ids := types_ids || 3;
+		if type_temp = 'person' then types_ids := types_ids || 1;
+		elsif type_temp = 'group' then types_ids := types_ids || 2;
+		elsif type_temp = 'orchestra' then types_ids := types_ids || 3;
+		elsif type_temp = 'choir' then types_ids := types_ids || 4;
+		elsif type_temp = 'character' then types_ids := types_ids || 5;
+		elsif type_temp = 'other' then types_ids := types_ids || 6;
 		else raise exception 'Invalid type - %',  type_temp;
 		end if;
 	end loop;
