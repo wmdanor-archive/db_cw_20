@@ -29,7 +29,7 @@ $$ language plpgsql called on null input;
 
 
 create or replace function get_artists_rating_statistics
-(artists_ids integer array, filters compositions_rating_statistics_filter)
+(artists_ids integer array, filters entity_rating_statistics_filter)
 returns table(artist_id integer, times_rated bigint, avg_rating numeric)
 as $$
 declare
@@ -131,7 +131,7 @@ create or replace function get_artists
 	history_toggle boolean,
 	history_filters compositions_history_statistics_filter,
 	rating_toggle boolean,
-	rating_filter compositions_rating_statistics_filter,
+	rating_filter entity_rating_statistics_filter,
 	playlists_toggle boolean,
 	playlists_filter compositions_collections_statistics_filter,
 	albums_toggle boolean, 
@@ -174,8 +174,8 @@ orders_types constant text array := array[
     'name',
     'type',
     'gender',
-    'begin_date',
-    'end_date',
+    'array[coalesce(begin_date_year, 0), coalesce(begin_date_month, 0), coalesce(begin_date_day, 0)]',
+    'array[coalesce(end_date_year, 0), coalesce(end_date_month, 0), coalesce(end_date_day, 0)]',
     'times_listened',
     'times_rated',
     'average_rating',
@@ -183,6 +183,8 @@ orders_types constant text array := array[
     'albums_belong_number'
 ];
 order_type integer;
+types_ids smallint array := null;
+type_temp varchar(32);
 begin
 
 if attribute_filter.begin_date_from is not null or attribute_filter.begin_date_to is not null or 
@@ -224,6 +226,18 @@ loop
 end loop;
 orders_text := rtrim(orders_text, ', ');
 
+if attribute_filter.types is not null and array_length(attribute_filter.types, 1) != 0 then
+	types_ids := array[];
+	foreach type_temp in array attribute_filter.types
+	loop
+		if type_temp = 'public' then types_ids := types_ids || 1;
+		elsif type_temp = 'unlisted' then types_ids := types_ids || 2;
+		elsif type_temp = 'private' then types_ids := types_ids || 3;
+		else raise exception 'Invalid type - %',  type_temp;
+		end if;
+	end loop;
+end if;
+
 return query execute
 	'SELECT artists.artist_id, artists.name, artist_types.name,
 	genders.name, artists.begin_date_year, artists.begin_date_month,
@@ -241,10 +255,10 @@ return query execute
 	WHERE
 	COALESCE(artists.artist_id = ANY($12), true) AND
 	'|| ftq_where ||' AND
-	COALESCE(artist_types.name = ANY($2), true)
+	COALESCE(artists.type_id = ANY($2), true)
 	ORDER BY '|| ftq_rank || orders_text ||'
 	OFFSET $13 LIMIT $14'
-	using attribute_filter.name_comment, attribute_filter.types, attribute_filter.genders,
+	using attribute_filter.name_comment, types_ids, attribute_filter.genders,
 	attribute_filter.begin_date_from, attribute_filter.begin_date_to,
 	attribute_filter.end_date_from, attribute_filter.end_date_to,
 	history_filters, rating_filter, playlists_filter, albums_filter, artists_ids,

@@ -35,8 +35,8 @@ elsif not b1 and not b2 and b3 then
 elsif not b1 and not b2 and not b3 then
 	date_1 := make_date(year_1, month_1, day_1);
 	case
-	when date_1 > year_2 then return -1;
-	when date_1 < year_2 then return 1;
+	when date_1 > date_2 then return -1;
+	when date_1 < date_2 then return 1;
 	else return 0;
 	end case;
 else raise exception 'Invalid date 1';

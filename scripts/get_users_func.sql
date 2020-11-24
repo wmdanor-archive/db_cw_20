@@ -243,7 +243,7 @@ saved_albums_join text := '(select null::int, null::bigint as saved_number) albu
 saved_plists_join text := '(select null::int, null::bigint as saved_number) plist_saved on true';
 full_name_search_mode text := ' OR full_name IS NULL';
 birth_search_mode text := ' OR birth_date IS NULL';
-genders_search_mode text := ' OR genders.name IS NULL';
+genders_search_mode text := ' OR users.gender_id IS NULL';
 orders_text text := '';
 orders_types constant text array := array[
 	'user_id',
@@ -264,6 +264,8 @@ orders_types constant text array := array[
     'playlists_saved_number'
 ];
 order_type integer;
+genders_ids smallint array := null;
+gender_temp varchar(32);
 begin
 if history_toggle then
 hist_join := 'get_users_history_statistics($15, $9) AS comp_hist ON users.user_id = comp_hist.user_id';
@@ -291,7 +293,7 @@ if attribute_filter.birth_exclude_nulls then
 birth_search_mode := ' AND birth_date IS NOT NULL';
 end if;
 if attribute_filter.gender_exclude_nulls then
-genders_search_mode := ' AND genders.name IS NOT NULL';
+genders_search_mode := ' AND users.gender_id IS NOT NULL';
 end if;
 
 if array_length(orders, 1) = 0 then
@@ -309,6 +311,18 @@ loop
 	end if;
 end loop;
 orders_text := rtrim(orders_text, ', ');
+
+if attribute_filter.genders is not null and array_length(attribute_filter.genders, 1) != 0 then
+	genders_ids := array[];
+	foreach gender_temp in array attribute_filter.genders
+	loop
+		if gender_temp = 'male' then genders_ids := genders_ids || 1;
+		elsif gender_temp = 'female' then genders_ids := genders_ids || 2;
+		elsif gender_temp = 'other' then genders_ids := genders_ids || 3;
+		else raise exception 'Invalid gender - %',  gender_temp;
+		end if;
+	end loop;
+end if;
 
 return query execute
 	'SELECT users.user_id, users.username, users.password_hash,
@@ -334,14 +348,14 @@ return query execute
 	COALESCE(registration_date <= $4, true) AND
 	COALESCE(birth_date >= $5'|| birth_search_mode ||', true) AND
 	COALESCE(birth_date <= $6'|| birth_search_mode ||', true) AND
-	COALESCE(genders.name = ANY($7)'|| genders_search_mode ||', true) AND
+	COALESCE(users.gender_id = ANY($7)'|| genders_search_mode ||', true) AND
 	COALESCE(is_active = $8, true)
 	ORDER BY '|| orders_text ||'
 	OFFSET $16 LIMIT $17'
 	using attribute_filter.username, attribute_filter.full_name,
 	attribute_filter.registration_from, attribute_filter.registration_to,
 	attribute_filter.birth_from, attribute_filter.birth_to,
-	attribute_filter.genders, attribute_filter.is_active,
+	genders_ids, attribute_filter.is_active,
 	history_filters, compositions_rating_filter,
 	albums_rating_filter, playlists_rating_filter,
 	saved_albums_filter, saved_playlists_filter,

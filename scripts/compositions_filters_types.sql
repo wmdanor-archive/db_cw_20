@@ -21,7 +21,7 @@ create type compositions_history_statistics_filter as
 	users_ids_any boolean
 );
 
-create type compositions_rating_statistics_filter as
+create type entity_rating_statistics_filter as
 (
 	rating_date_from date,
 	rating_date_to date,

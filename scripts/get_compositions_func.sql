@@ -29,7 +29,7 @@ $$ language plpgsql called on null input;
 
 
 create or replace function get_compositions_rating_statistics
-(compositions_ids integer array, filters compositions_rating_statistics_filter)
+(compositions_ids integer array, filters entity_rating_statistics_filter)
 returns table(composition_id integer, times_rated bigint, avg_rating numeric)
 as $$
 declare
@@ -116,7 +116,7 @@ $$ language plpgsql called on null input;
 -- 2 - title
 -- 3 - artist_id
 -- 4 - duration
--- 5 - release_date
+-- 5 - release_date                 DO THIS
 -- 6 - times_listened
 -- 7 - times_rated
 -- 8 - average_rating
@@ -131,7 +131,7 @@ create or replace function get_compositions
 	history_toggle boolean,
 	history_filters compositions_history_statistics_filter,
 	rating_toggle boolean,
-	rating_filter compositions_rating_statistics_filter,
+	rating_filter entity_rating_statistics_filter,
 	playlists_toggle boolean,
 	playlists_filter compositions_collections_statistics_filter,
 	albums_toggle boolean,
@@ -174,7 +174,7 @@ orders_types constant text array := array[
     'title',
     'artist_id',
     'duration',
-    'release_date',
+    'array[coalesce(release_year, 0), coalesce(release_month, 0), coalesce(release_day, 0)]',
     'times_listened',
     'times_rated',
     'average_rating',
