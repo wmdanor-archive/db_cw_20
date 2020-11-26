@@ -39,7 +39,7 @@ return query execute
 	COALESCE(playlists.playlist_id = ANY($8), true) AND
 	COALESCE(rating_date >= $1, true) AND
 	COALESCE(rating_date <= $2, true)
-	GROUP BY compositions.composition_id
+	GROUP BY playlists.playlist_id
    	HAVING (
 		COALESCE(COUNT(playlists_rating) >= $3, true) AND
 		COALESCE(COUNT(playlists_rating) <= $4, true) AND
@@ -71,8 +71,8 @@ return query execute
 	AND COALESCE(playlists.playlist_id = ANY($4), true)
 	GROUP BY playlists.playlist_id
 	HAVING (
-		COALESCE(COUNT(user_saved_plists) >= $1) AND
-		COALESCE(COUNT(user_saved_plists) <= $2) AND
+		COALESCE(COUNT(user_saved_plists) >= $1, true) AND
+		COALESCE(COUNT(user_saved_plists) <= $2, true) AND
 		COALESCE(ARRAY_AGG(DISTINCT user_id) ' || any_or_all || ' $3, true)
 	)
 	ORDER BY playlist_id'
@@ -128,14 +128,14 @@ orders_types constant text array := array[
     'playlist_id',
     'title',
     'creator_id',
-	'privacy_id',
-    'compositions_number',
-    'times_rated',
+	'playlists_privacy.privacy_type',
+    'comp.compositions_number',
+    'rate.times_rated',
     'average_rating',
-    'users_saved_number'
+    'users.users_saved_number'
 ];
 order_type integer;
-privacies_ids smallint array := null;
+privacies_ids integer array := null;
 privacy_temp varchar(16);
 begin
 
@@ -183,7 +183,7 @@ end if;
 
 return query execute
 	'SELECT playlists.playlist_id, playlists.title, playlists.creator_id, playlists_privacy.privacy_type,
-	comp.compositions_number, rate.times_rated, round(rate.avg_rating, 2)::real, users.users_saved_number
+	comp.compositions_number, rate.times_rated, round(rate.avg_rating, 2)::real as average_rating, users.users_saved_number
 	FROM playlists
 	LEFT JOIN playlists_privacy ON playlists.privacy_id = playlists_privacy.privacy_id
 	INNER JOIN ' || comp_join || '
@@ -212,5 +212,6 @@ select * from get_playlists( null,
 	row(null, null, null, null, null, null, null, null), 
 	true,
 	row(null, null, null, null),
-	row(null, null)
+	row(null, null),
+	array[1, 2, 3, 4, 5, 6, 7, 8]
 )

@@ -71,8 +71,8 @@ return query execute
 	AND COALESCE(albums.album_id = ANY($4), true)
 	GROUP BY albums.album_id
 	HAVING (
-		COALESCE(COUNT(user_saved_albums) >= $1) AND
-		COALESCE(COUNT(user_saved_albums) <= $2) AND
+		COALESCE(COUNT(user_saved_albums) >= $1, true) AND
+		COALESCE(COUNT(user_saved_albums) <= $2, true) AND
 		COALESCE(ARRAY_AGG(DISTINCT user_id) ' || any_or_all || ' $3, true)
 	)
 	ORDER BY album_id'
@@ -128,10 +128,10 @@ orders_types constant text array := array[
     'album_id',
     'title',
     'array[coalesce(release_year, 0), coalesce(release_month, 0), coalesce(release_day, 0)]',
-    'compositions_number',
-    'times_rated',
+    'comp.compositions_number',
+    'rate.times_rated',
     'average_rating',
-    'users_saved_number'
+    'users.users_saved_number'
 ];
 order_type integer;
 begin
@@ -168,7 +168,7 @@ orders_text := rtrim(orders_text, ', ');
 
 return query execute
 	'SELECT albums.album_id, albums.title, albums.release_year, albums.release_month, albums.release_day,
-	comp.compositions_number, rate.times_rated, round(rate.avg_rating, 2)::real, users.users_saved_number
+	comp.compositions_number, rate.times_rated, round(rate.avg_rating, 2)::real as average_rating, users.users_saved_number
 	FROM albums
 	INNER JOIN ' || comp_join || '
 	INNER JOIN ' || rate_join || '
@@ -196,5 +196,6 @@ select * from get_albums( null,
 	row(null, null, null, null, null, null, null, null), 
 	true,
 	row(null, null, null, null),
-	row(null, null)
+	row(null, null),
+	array[1, 2, 3, 4, 5, 6, 7]
 )

@@ -171,19 +171,19 @@ ftq_rank text := '';
 orders_text text := '';
 orders_types constant text array := array[
     'artist_id',
-    'name',
-    'type',
-    'gender',
+    'artists.name',
+    'artist_types.name',
+    'genders.name',
     'array[coalesce(begin_date_year, 0), coalesce(begin_date_month, 0), coalesce(begin_date_day, 0)]',
     'array[coalesce(end_date_year, 0), coalesce(end_date_month, 0), coalesce(end_date_day, 0)]',
-    'times_listened',
-    'times_rated',
+    'hist.times_listened',
+    'rate.times_rated',
     'average_rating',
-    'playlists_belong_number',
-    'albums_belong_number'
+    'plist_belong.belongs_number',
+    'album_belong.belongs_number'
 ];
 order_type integer;
-types_ids smallint array := null;
+types_ids integer array := null;
 type_temp varchar(32);
 begin
 
@@ -227,7 +227,7 @@ end loop;
 orders_text := rtrim(orders_text, ', ');
 
 if attribute_filter.types is not null and array_length(attribute_filter.types, 1) != 0 then
-	types_ids := array[];
+	--types_ids := integer array[];
 	foreach type_temp in array attribute_filter.types
 	loop
 		if type_temp = 'person' then types_ids := types_ids || 1;
@@ -246,7 +246,7 @@ return query execute
 	genders.name, artists.begin_date_year, artists.begin_date_month,
 	artists.begin_date_day, artists.end_date_year, artists.end_date_month,
 	artists.end_date_day, artists.comment, '|| ftq_head ||',
-	hist.times_listened, rate.times_rated, round(rate.avg_rating, 2)::real,
+	hist.times_listened, rate.times_rated, round(rate.avg_rating, 2)::real as average_rating,
 	plist_belong.belongs_number, album_belong.belongs_number
 	FROM artists
 	LEFT JOIN artist_types ON artists.type_id = artist_types.type_id
@@ -279,7 +279,7 @@ $$ language plpgsql called on null input;
 */
 
 select * from get_artists( null,
-	row(null, null, null, null, null, null, null, true),
+	row(null, array['person', 'group'], null, null, null, null, null, true),
 	true,
 	row(null, null, null, null, null, null),
 	true,
@@ -288,5 +288,6 @@ select * from get_artists( null,
 	row(null, null, null, null),
 	true,
 	row(null, null, null, null),
-	row(null, null)
+	row(null, null),
+	array[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 )

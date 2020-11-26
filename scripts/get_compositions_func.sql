@@ -116,7 +116,7 @@ $$ language plpgsql called on null input;
 -- 2 - title
 -- 3 - artist_id
 -- 4 - duration
--- 5 - release_date                 DO THIS
+-- 5 - release_date
 -- 6 - times_listened
 -- 7 - times_rated
 -- 8 - average_rating
@@ -175,11 +175,11 @@ orders_types constant text array := array[
     'artist_id',
     'duration',
     'array[coalesce(release_year, 0), coalesce(release_month, 0), coalesce(release_day, 0)]',
-    'times_listened',
-    'times_rated',
+    'hist.times_listened',
+    'rate.times_rated',
     'average_rating',
-    'playlists_belong_number',
-    'albums_belong_number'
+    'plist_belong.belongs_number',
+    'album_belong.belongs_number'
 ];
 order_type integer;
 begin
@@ -229,7 +229,7 @@ return query execute
 	'SELECT compositions.composition_id, compositions.title, compositions.artist_id,
 	compositions.duration, compositions.release_year, compositions.release_month,
 	compositions.release_day, compositions.lyrics, compositions.path_to_file, '|| ftq_head ||',
-	hist.times_listened, rate.times_rated, round(rate.avg_rating, 2)::real, 
+	hist.times_listened, rate.times_rated, round(rate.avg_rating, 2)::real as average_rating, 
 	plist_belong.belongs_number, album_belong.belongs_number
 	FROM compositions
 	INNER JOIN ' || hist_join || '
@@ -263,5 +263,6 @@ select * from get_compositions( null,
 	row(null, null, null, null),
 	true,
 	row(null, null, null, null),
-	row(null, null)
+	row(null, null),
+	array[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 )
