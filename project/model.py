@@ -359,6 +359,7 @@ class ModelPSQL:
                 playlist['average_rating'] = row['average_rating']
             if playlists_filter.users.toggle:
                 playlist['users_saved_number'] = row['users_saved_number']
+            playlists.append(playlist)
         return playlists
 
     def get_albums(self, albums_filter, orders_list, pagination_filter):
@@ -401,26 +402,30 @@ class ModelPSQL:
                 album['average_rating'] = row['average_rating']
             if albums_filter.users.toggle:
                 album['users_saved_number'] = row['users_saved_number']
+            albums.append(album)
         return albums
 
-    def get_listening_history(self, history_filter=, orders_list, pagination_filter):  # work in progress
+    def get_listening_history(self, history_filter, orders_list, pagination_filter):  # work in progress
         self.__cursor.execute(
             'SELECT * FROM get_history('
-            'row(%s, %s, %s, %s), %s, %s,'
+            'row(%s, %s, %s, %s), %s, %s, '
             'row(%s, %s), %s)',
-            ())
+            (tuple()))
         listening_history = []
         for row in self.__cursor:
-            listening_history.append(dict(row))
+            record = dict()
         return listening_history
 
     def get_rating(self, rated_type, rating_filter, orders_list, pagination_filter):
-        self.__cursor.execute('SELECT * FROM listening_history '
-                              'OFFSET %s LIMIT %s',
-                              pagination_filter.offset, pagination_filter.page_size)
+        self.__cursor.execute(
+            'SELECT * FROM get_rating(%s, '
+            'row(%s, %s, %s, %s, %s), %s, %s, '
+            'row(%s, %s), %s)',
+            (rated_type,
+             rating_filter))
         listening_history = []
         for row in self.__cursor:
-            listening_history.append(dict(row))
+            record = dict()
         return listening_history
 
     # standard user operations
