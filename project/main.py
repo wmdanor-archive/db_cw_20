@@ -3,6 +3,7 @@ import psycopg2
 from model import PaginationFilter
 import view
 from controller import ControllerPSQL
+from model import ModelPSQL
 
 from models.user import User, UserFilter
 from models.composition import Composition, CompositionFilter

@@ -1,6 +1,8 @@
 from psycopg2.extras import DictCursor
 from models.to_string import to_str
 
+from models.filters import *
+
 import time
 
 
@@ -83,10 +85,14 @@ class ModelPSQL:
         self.__cursor.execute('insert into users (username, password_hash, registration_date, is_active, full_name, '
                               'birth_date, gender_id) '
                               'select \'username \'||s.a, \'password hash \'||s.a, '
-                              '(date \'2020-11-1\' - \'5 years\'::interval + justify_interval(\'5 years\'::interval/(%(end)s - %(start)s + 1) * s.a))::date, '
-                              'toss_a_coin(0.95), case when toss_a_coin(0.6) then \'full name \'||s.a else null::text end, '
-                              'case when toss_a_coin(0.4) then (timestamp \'1970-1-1\' + random()*(timestamp \'2004-1-1\' - timestamp \'1970-1-1\'))::date '
-                              'else null::date end, case when toss_a_coin(0.5) then floor(random()* (3) + 1)::smallint else null::smallint end '
+                              '(date \'2020-11-1\' - \'5 years\'::interval + justify_interval(\'5 years\'::interval/'
+                              '(%(end)s - %(start)s + 1) * s.a))::date, '
+                              'toss_a_coin(0.95), case when toss_a_coin(0.6) then \'full name \'||s.a else null::text '
+                              'end, '
+                              'case when toss_a_coin(0.4) then (timestamp \'1970-1-1\' + random()*(timestamp '
+                              '\'2004-1-1\' - timestamp \'1970-1-1\'))::date '
+                              'else null::date end, case when toss_a_coin(0.5) then floor(random()* '
+                              '(3) + 1)::smallint else null::smallint end '
                               'from generate_series(%(start)s, %(end)s) as s(a)',
                               {'start': start_number, 'end': end_number})
 
@@ -115,7 +121,7 @@ class ModelPSQL:
 
     # basic getters
 
-    def get_users(self, users_filter, pagination_filter):
+    def get_users(self, users_filter, orders_list, pagination_filter):
         timestamp = time.time()
         self.__cursor.execute(
             'SELECT * FROM get_users(%s, '
@@ -125,8 +131,8 @@ class ModelPSQL:
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s), '
-            '%s, row(%s, %s, %s, %s)) '
-            'OFFSET %s LIMIT %s',
+            '%s, row(%s, %s, %s, %s), '
+            'row(%s, %s), %s)',
             (to_setlike_list(users_filter.users_ids),
              users_filter.attributes.username,
              users_filter.attributes.full_name_exclude_nulls, users_filter.attributes.full_name,
@@ -161,7 +167,7 @@ class ModelPSQL:
              users_filter.saved_albums.toggle,
              users_filter.saved_albums.saved_number_from, users_filter.saved_albums.saved_number_to,
              to_setlike_list(users_filter.saved_albums.saved_ids_list), users_filter.saved_albums.saved_ids_any,
-             pagination_filter.offset, pagination_filter.page_size))
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
         self.last_query_runtime = time.time() - timestamp
         users = []
         for row in self.__cursor:
@@ -193,7 +199,7 @@ class ModelPSQL:
             users.append(user)
         return users
 
-    def get_compositions(self, compositions_filter, pagination_filter):
+    def get_compositions(self, compositions_filter, orders_list, pagination_filter):
         timestamp = time.time()
         self.__cursor.execute(
             'SELECT * FROM get_compositions(%s,'
@@ -201,8 +207,8 @@ class ModelPSQL:
             '%s, row(%s, %s, %s, %s, %s, %s),'
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s),'
-            '%s, row(%s, %s, %s, %s)) '
-            'OFFSET %s LIMIT %s',
+            '%s, row(%s, %s, %s, %s), '
+            'row(%s, %s), %s)',
             (to_setlike_list(compositions_filter.composition_ids),
              compositions_filter.attributes.title_lyrics,
              compositions_filter.attributes.artists_ids_exclude_nulls,
@@ -228,7 +234,7 @@ class ModelPSQL:
              compositions_filter.albums.number_belongs_from, compositions_filter.albums.number_belongs_to,
              to_setlike_list(compositions_filter.albums.collections_list),
              compositions_filter.albums.collections_any,
-             pagination_filter.offset, pagination_filter.page_size))
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
         self.last_query_runtime = time.time() - timestamp
         compositions = []
         for row in self.__cursor:
@@ -254,7 +260,7 @@ class ModelPSQL:
             compositions.append(composition)
         return compositions
 
-    def get_artists(self, artists_filter, pagination_filter):
+    def get_artists(self, artists_filter, orders_list, pagination_filter):
         timestamp = time.time()
         self.__cursor.execute(
             'SELECT * FROM get_artists(%s,'
@@ -262,8 +268,8 @@ class ModelPSQL:
             '%s, row(%s, %s, %s, %s, %s, %s),'
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s),'
-            '%s, row(%s, %s, %s, %s)) '
-            'OFFSET %s LIMIT %s',
+            '%s, row(%s, %s, %s, %s), '
+            'row(%s, %s), %s)',
             (to_setlike_list(artists_filter.artists_ids),
              artists_filter.attributes.name_comment,
              to_setlike_list(artists_filter.attributes.types), to_setlike_list(artists_filter.attributes.genders),
@@ -285,7 +291,7 @@ class ModelPSQL:
              artists_filter.albums.toggle,
              artists_filter.albums.number_belongs_from, artists_filter.albums.number_belongs_to,
              to_setlike_list(artists_filter.albums.collections_list), artists_filter.albums.collections_any,
-             pagination_filter.offset, pagination_filter.page_size))
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
         self.last_query_runtime = time.time() - timestamp
         artists = []
         for row in self.__cursor:
@@ -313,25 +319,102 @@ class ModelPSQL:
             artists.append(artist)
         return artists
 
-    def get_playlists(self, playlists_filter, pagination_filter):  # work in progress
-        self.__cursor.execute('SELECT * FROM playlists '
-                              'OFFSET %s LIMIT %s',
-                              pagination_filter.offset, pagination_filter.page_size)
+    def get_playlists(self, playlists_filter, orders_list, pagination_filter):
+        self.__cursor.execute(
+            'SELECT * FROM get_playlists(%s, '
+            'row(%s, %s, %s, %s), '
+            '%s, row(%s, %s, %s, %s), '
+            '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
+            '%s, row(%s, %s, %s, %s), '
+            'row(%s, %s), %s',
+            (to_setlike_list(playlists_filter.playlists_ids),
+             playlists_filter.attributes.title, playlists_filter.attributes.creators_ids_exclude_nulls,
+             to_setlike_list(playlists_filter.attributes.creators_ids),
+             to_setlike_list(playlists_filter.attributes.privacies),
+             playlists_filter.compositions.toggle,
+             playlists_filter.compositions.compositions_number_from,
+             playlists_filter.compositions.compositions_number_to,
+             to_setlike_list(playlists_filter.compositions.compositions_list),
+             playlists_filter.compositions.compositions_any,
+             playlists_filter.rating.toggle,
+             playlists_filter.rating.rating_date_from, playlists_filter.rating.rating_date_to,
+             playlists_filter.rating.times_rated_from, playlists_filter.rating.times_rated_to,
+             playlists_filter.rating.average_rating_from, playlists_filter.rating.average_rating_to,
+             to_setlike_list(playlists_filter.rating.users_ids_any), playlists_filter.rating.users_ids,
+             playlists_filter.users.toggle,
+             playlists_filter.users.users_number_from, playlists_filter.users.users_number_to,
+             to_setlike_list(playlists_filter.users.users_list), playlists_filter.users.users_any,
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
         playlists = []
         for row in self.__cursor:
-            playlists.append(dict(row))
+            playlist = dict(row)
+            playlist['playlist_id'] = row['playlist_id']
+            playlist['title'] = row['title']
+            playlist['creator_id'] = row['creator_id']
+            playlist['privacy'] = row['privacy']
+            if playlists_filter.compositions.toggle:
+                playlist['compositions_number'] = row['compositions_number']
+            if playlists_filter.rating.toggle:
+                playlist['times_rated'] = row['times_rated']
+                playlist['average_rating'] = row['average_rating']
+            if playlists_filter.users.toggle:
+                playlist['users_saved_number'] = row['users_saved_number']
         return playlists
 
-    def get_albums(self, albums_filter, pagination_filter):  # work in progress
-        self.__cursor.execute('SELECT * FROM albums '
-                              'OFFSET %s LIMIT %s',
-                              pagination_filter.offset, pagination_filter.page_size)
+    def get_albums(self, albums_filter, orders_list, pagination_filter):
+        self.__cursor.execute(
+            'SELECT * FROM get_albums(%s, '
+            'row(%s, %s, %s, %s), '
+            '%s, row(%s, %s, %s, %s), '
+            '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
+            '%s, row(%s, %s, %s, %s), '
+            'row(%s, %s), %s)',
+            (albums_filter.albums_ids,
+             albums_filter.attributes.title, albums_filter.attributes.release_date_exclude_nulls,
+             albums_filter.attributes.release_date_from, albums_filter.attributes.release_date_from,
+             albums_filter.compositions.toggle,
+             albums_filter.compositions.compositions_number_from,
+             albums_filter.compositions.compositions_number_to,
+             to_setlike_list(albums_filter.compositions.compositions_list),
+             albums_filter.compositions.compositions_any,
+             albums_filter.rating.toggle,
+             albums_filter.rating.rating_date_from, albums_filter.rating.rating_date_to,
+             albums_filter.rating.times_rated_from, albums_filter.rating.times_rated_to,
+             albums_filter.rating.average_rating_from, albums_filter.rating.average_rating_to,
+             to_setlike_list(albums_filter.rating.users_ids_any), albums_filter.rating.users_ids,
+             albums_filter.users.toggle,
+             albums_filter.users.users_number_from, albums_filter.users.users_number_to,
+             to_setlike_list(albums_filter.users.users_list), albums_filter.users.users_any,
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
         albums = []
         for row in self.__cursor:
-            albums.append(dict(row))
+            album = dict()
+            album['albums_id'] = row['albums_id']
+            album['title'] = row['title']
+            album['release_year'] = row['release_year']
+            album['release_month'] = row['release_month']
+            album['release_day'] = row['release_day']
+            if albums_filter.compositions.toggle:
+                album['compositions_number'] = row['compositions_number']
+            if albums_filter.rating.toggle:
+                album['times_rated'] = row['times_rated']
+                album['average_rating'] = row['average_rating']
+            if albums_filter.users.toggle:
+                album['users_saved_number'] = row['users_saved_number']
         return albums
 
-    def get_listening_history(self, history_filter, pagination_filter):  # work in progress
+    def get_listening_history(self, history_filter=, orders_list, pagination_filter):  # work in progress
+        self.__cursor.execute(
+            'SELECT * FROM get_history('
+            'row(%s, %s, %s, %s), %s, %s,'
+            'row(%s, %s), %s)',
+            ())
+        listening_history = []
+        for row in self.__cursor:
+            listening_history.append(dict(row))
+        return listening_history
+
+    def get_rating(self, rated_type, rating_filter, orders_list, pagination_filter):
         self.__cursor.execute('SELECT * FROM listening_history '
                               'OFFSET %s LIMIT %s',
                               pagination_filter.offset, pagination_filter.page_size)
@@ -410,27 +493,6 @@ class ModelPSQL:
         else:
             return True
 
-    def get_user_playlists(self, user_id):
-        self.__cursor.execute('SELECT * FROM playlists '
-                              'WHERE EXISTS '
-                              '(SELECT playlist_id FROM user_saved_plists '
-                              'WHERE user_saved_plists.user_id = %s AND '
-                              'user_saved_plists.playlist_id = playlists.playlist_id)',
-                              (user_id,))
-        playlists = []
-        for row in self.__cursor:
-            playlists.append(dict(row))
-        return playlists
-
-    def get_user_created_playlists(self, user_id):
-        self.__cursor.execute('SELECT * FROM playlists '
-                              'WHERE creator_id = %s',
-                              (user_id,))
-        playlists = []
-        for row in self.__cursor:
-            playlists.append(dict(row))
-        return playlists
-
     def add_user_album(self, album_id, user_id):
         self.__cursor.execute('INSERT INTO user_saved_albums '
                               '(album_id, user_id) '
@@ -456,27 +518,6 @@ class ModelPSQL:
             return False
         else:
             return True
-
-    def get_user_albums(self, user_id):
-        self.__cursor.execute('SELECT * FROM albums '
-                              'WHERE EXISTS '
-                              '(SELECT album_id FROM user_saved_albums '
-                              'WHERE user_saved_albums.user_id = %s AND '
-                              'user_saved_albums.playlist_id = album.album_id)',
-                              (user_id,))
-        albums = []
-        for row in self.__cursor:
-            albums.append(dict(row))
-        return albums
-
-    def get_user_listening_history(self, user_id):
-        self.__cursor.execute('SELECT * FROM listening_history '
-                              'WHERE user_id = %s',
-                              (user_id,))
-        listening_history = []
-        for row in self.__cursor:
-            listening_history.append(dict(row))
-        return listening_history
 
     # standard composition operations
 
@@ -535,15 +576,6 @@ class ModelPSQL:
         else:
             return dict(row)
 
-    def get_composition_listening_history(self, composition_id):
-        self.__cursor.execute('SELECT * FROM listening_history '
-                              'WHERE composition_id = %s',
-                              (composition_id,))
-        listening_history = []
-        for row in self.__cursor:
-            listening_history.append(dict(row))
-        return listening_history
-
     def rate_composition(self, rating_model):
         self.__cursor.execute('INSERT INTO compositions_rating '
                               '(composition_id, user_id, satisfied, rating_date) '
@@ -572,15 +604,6 @@ class ModelPSQL:
             return None
         else:
             return dict(row)
-
-    def get_composition_rating(self, composition_id):
-        self.__cursor.execute('SELECT * FROM compositions_rating '
-                              'WHERE composition_id = %s',
-                              (composition_id,))
-        ratings = []
-        for row in self.__cursor:
-            ratings.append(dict(row))
-        return ratings
 
     # standard artist operations
 
@@ -620,16 +643,7 @@ class ModelPSQL:
 
     # advanced artist operations
 
-    def get_artist_rating(self, artist_id):
-        self.__cursor.execute('SELECT compositions_rating.* FROM compositions '
-                              'INNER JOIN compositions_rating ON '
-                              'compositions.composition_id = compositions_rating.compositions '
-                              'WHERE compositions.artist_id = %s',
-                              (artist_id,))
-        ratings = []
-        for row in self.__cursor:
-            ratings.append(dict(row))
-        return ratings
+    # nothing ?
 
     # standard playlist operations
 
@@ -749,15 +763,6 @@ class ModelPSQL:
         else:
             return dict(row)
 
-    def get_playlist_rating(self, playlist_id):
-        self.__cursor.execute('SELECT * FROM playlists_rating '
-                              'WHERE playlist_id = %s',
-                              (playlist_id,))
-        ratings = []
-        for row in self.__cursor:
-            ratings.append(dict(row))
-        return ratings
-
     # standard album operations
 
     def create_album(self, album_model):
@@ -871,12 +876,3 @@ class ModelPSQL:
             return None
         else:
             return dict(row)
-
-    def get_album_rating(self, album_id):
-        self.__cursor.execute('SELECT * FROM albums_rating '
-                              'WHERE playlist_id = %s',
-                              (album_id,))
-        ratings = []
-        for row in self.__cursor:
-            ratings.append(dict(row))
-        return ratings

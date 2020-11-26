@@ -279,7 +279,7 @@ $$ language plpgsql called on null input;
 */
 
 select * from get_artists( null,
-	row(null, array['person', 'group'], null, null, null, null, null, true),
+	row(null, null, null, null, null, null, null, true),
 	true,
 	row(null, null, null, null, null, null),
 	true,
