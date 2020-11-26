@@ -115,7 +115,6 @@ returns table(
 	avg_rated_rating numeric,
 	times_user_rated bigint,
 	avg_user_rating numeric
-	
 )
 as $$
 declare

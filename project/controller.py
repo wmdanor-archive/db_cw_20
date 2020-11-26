@@ -2,13 +2,14 @@ from model import ModelPSQL, PaginationFilter
 import view
 import datetime
 
-from models.user import User, UserFilter
-from models.composition import Composition, CompositionFilter
-from models.performer import Artist, ArtistFilter
+from models.user import User
+from models.composition import Composition
+from models.performer import Artist
 from models.album import Album
 from models.playlist import Playlist
 from models.rating import Rating
 from models.history_record import HistoryRecord
+from models.filters import *
 
 
 def to_int(number):
@@ -712,7 +713,8 @@ class ControllerPSQL:
             self.__view.view_message(users_filter)
             self.__view.view_message('What to edit')
             self.__view.view_message('0 - go back')
-            filters = ['users_ids', 'attributes', 'history', 'compositions_rating', 'playlists_rating', 'albums_rating', 'saved_playlists', 'saved_albums']
+            filters = ['users_ids', 'attributes', 'history', 'compositions_rating', 'playlists_rating', 'albums_rating',
+                       'saved_playlists', 'saved_albums']
             i = 1
             for item in filters:
                 self.__view.view_message(i, '-', item)
@@ -1540,7 +1542,7 @@ class ControllerPSQL:
                 self.__view.view_message('NaN')
             elif method_id == -1:
                 self.__view.view_message('Closing')
-                break;
+                break
             elif method_id == 0:
                 self.filling_menu()
             elif method_id == 1:

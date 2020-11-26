@@ -410,10 +410,22 @@ class ModelPSQL:
             'SELECT * FROM get_history('
             'row(%s, %s, %s, %s), %s, %s, '
             'row(%s, %s), %s)',
-            (tuple()))
+            (history_filter.users_ids, history_filter.compositions_ids,
+             history_filter.listened_from, history_filter.listened_to,
+             history_filter.user_listened_counter, history_filter.composition_listened_counter,
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
         listening_history = []
         for row in self.__cursor:
             record = dict()
+            record['record_id'] = row['record_id']
+            record['user_id'] = row['user_id']
+            record['composition_id'] = row['composition_id']
+            record['listening_date'] = row['listening_date']
+            if history_filter.user_listened_counter:
+                record['times_user_listened'] = row['times_user_listened']
+            if history_filter.composition_listened_counter:
+                record['times_composition_listened'] = row['times_composition_listened']
+            listening_history.append(record)
         return listening_history
 
     def get_rating(self, rated_type, rating_filter, orders_list, pagination_filter):
@@ -422,11 +434,26 @@ class ModelPSQL:
             'row(%s, %s, %s, %s, %s), %s, %s, '
             'row(%s, %s), %s)',
             (rated_type,
-             rating_filter))
-        listening_history = []
+             rating_filter.users_ids, rating_filter.rated_ids, rating_filter.satisfied,
+             rating_filter.rated_from, rating_filter.rated_to,
+             rating_filter.rated_rating_counter, rating_filter.user_rating_counter,
+             pagination_filter.page_size, pagination_filter.offset, orders_list))
+        rating = []
         for row in self.__cursor:
             record = dict()
-        return listening_history
+            record['record_id'] = row['record_id']
+            record['rated_id'] = row['rated_id']
+            record['user_id'] = row['user_id']
+            record['satisfied'] = row['satisfied']
+            record['rating_date'] = row['rating_date']
+            if rating_filter.rated_rating_counter:
+                record['times_rated_rated'] = row['times_rated_rated']
+                record['avg_rated_rating'] = row['avg_rated_rating']
+            if rating_filter.user_rating_counter:
+                record['times_user_rated'] = row['times_user_rated']
+                record['avg_user_rating'] = row['avg_user_rating']
+            rating.append(record)
+        return rating
 
     # standard user operations
 

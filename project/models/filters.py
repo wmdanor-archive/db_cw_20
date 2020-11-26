@@ -367,11 +367,21 @@ class AlbumFilter:
 
 class HistoryFilter:
 
-    def __init__(self, compositions_ids=None, users_ids=None, listened_from=None, listened_to=None):
+    def __init__(self, compositions_ids=None, users_ids=None, listened_from=None, listened_to=None,
+                 user_listened_counter=None, composition_listened_counter=None):
         self.compositions_ids = compositions_ids
         self.users_ids = users_ids
         self.listened_from = listened_from
         self.listened_to = listened_to
+        self.user_listened_counter = user_listened_counter
+        self.composition_listened_counter = composition_listened_counter
+
+    def __str__(self):
+        return 'compositions_ids: ' + to_str(self.compositions_ids) + '\nusers_ids: ' +\
+                to_str(self.users_ids) + '\nlistened_from: ' + to_str(self.listened_from) +\
+                ' | listened_to: ' + to_str(self.listened_to) + '\nuser_listened_counter: '+\
+                to_str(self.user_listened_counter) + '\ncomposition_listened_counter: ' +\
+                to_str(self.composition_listened_counter)
 
 
 # Rating filter
@@ -379,9 +389,19 @@ class HistoryFilter:
 
 class RatingFilter:
 
-    def __init__(self, rated_ids=None, user_ids=None, satisfied=None, rated_from=None, rated_to=None):
+    def __init__(self, rated_ids=None, users_ids=None, satisfied=None, rated_from=None, rated_to=None,
+                 rated_rating_counter=None, user_rating_counter=None):
         self.rated_ids = rated_ids
-        self.user_ids = user_ids
+        self.users_ids = users_ids
         self.satisfied = satisfied
         self.rated_from = rated_from
         self.rated_to = rated_to
+        self.rated_rating_counter = rated_rating_counter
+        self.user_rating_counter = user_rating_counter
+
+    def __str__(self):
+        return 'rated_ids: ' + to_str(self.rated_ids) + '\nusers_ids: ' + \
+               to_str(self.users_ids) + '\nrated_from: ' + to_str(self.rated_from) + \
+               ' | rated_to: ' + to_str(self.rated_to) + ' | satisfied: ' + to_str(self.satisfied) +\
+               '\nrated_rating_counter: ' + to_str(self.rated_rating_counter) +\
+               '\nuser_rating_counter: ' + to_str(self.user_rating_counter)
