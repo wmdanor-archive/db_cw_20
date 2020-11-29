@@ -320,7 +320,6 @@ class ControllerPSQL:
                     self.__view.view_message('Enter birth_to')
                     attributes.birth_to = get_date()
                 elif res == 7:
-                    edit_set()
                     self.__view.view_message('To add type: ADD a1 a2 a3 ...\nTo remove type: REM a1 a2 a3 ...')
                     attributes.genders = edit_set(attributes.genders)
                 elif res == 8:
@@ -396,7 +395,7 @@ class ControllerPSQL:
                         history.compositions_ids_any = not history.compositions_ids_any
                     self.__view.view_message('Changed')
                 else:
-                    self.__view.view_message('Invalid action input')
+                    raise ValueError('Invalid action input')
             except Exception as err:
                 self.__view.view_exception(err)
 
@@ -411,111 +410,51 @@ class ControllerPSQL:
             for item in rate:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                if rating.toggle is None:
-                    rating.toggle = True
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if rating.toggle is None:
+                        rating.toggle = True
+                    else:
+                        rating.toggle = not rating.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter rating_date_from')
+                    rating.rating_date_from = get_date()
+                elif res == 3:
+                    self.__view.view_message('Enter rating_date_to')
+                    rating.rating_date_to = get_date()
+                elif res == 4:
+                    self.__view.view_message('Enter times_rated_from')
+                    rating.times_rated_from = get_int()
+                elif res == 5:
+                    self.__view.view_message('Enter times_rated_to')
+                    rating.times_rated_to = get_int()
+                elif res == 6:
+                    self.__view.view_message('Enter average_rating_from')
+                    rating.average_rating_from = get_float()
+                elif res == 7:
+                    self.__view.view_message('Enter average_rating_to')
+                    rating.average_rating_to = get_float()
+                elif res == 8:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    rating.rated_ids = edit_set(rating.rated_ids, int)
+                elif res == 9:
+                    if rating.rated_ids_any is None:
+                        rating.rated_ids_any = True
+                    else:
+                        rating.rated_ids_any = not rating.rated_ids_any
+                    self.__view.view_message('Changed')
                 else:
-                    rating.toggle = not rating.toggle
-                self.__view.view_message('Changed')
-            elif res == 2:
-                self.__view.view_message('Enter rating_date_from')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                elif not is_valid_date(new_val):
-                    self.__view.view_message('Invalid date')
-                    continue
-                rating.rating_date_from = new_val
-            elif res == 3:
-                self.__view.view_message('Enter rating_date_to')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                elif not is_valid_date(new_val):
-                    self.__view.view_message('Invalid date')
-                    continue
-                rating.rating_date_to = new_val
-            elif res == 4:
-                self.__view.view_message('Enter times_rated_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.times_rated_from = new_val
-            elif res == 5:
-                self.__view.view_message('Enter times_rated_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.times_rated_to = new_val
-            elif res == 6:
-                self.__view.view_message('Enter average_rating_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_float(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.average_rating_from = new_val
-            elif res == 7:
-                self.__view.view_message('Enter average_rating_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_float(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.average_rating_to = new_val
-            elif res == 8:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if rating.rated_ids is None:
-                        rating.rated_ids = set()
-                    rating.rated_ids = rating.rated_ids.union(vals)
-                elif cmd == 'REM':
-                    if rating.rated_ids is None:
-                        continue
-                    rating.rated_ids.difference_update(vals)
-                    if not rating.rated_ids:
-                        rating.rated_ids = None
-                else:
-                    self.__view.view_message('Invalid input')
-            elif res == 9:
-                if rating.rated_ids_any is None:
-                    rating.rated_ids_any = True
-                else:
-                    rating.rated_ids_any = not rating.rated_ids_any
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise Exception('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_users_filter_collections(self, saved_collections):
         while True:
@@ -527,73 +466,39 @@ class ControllerPSQL:
             for item in saved:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                if saved_collections.toggle is None:
-                    saved_collections.toggle = True
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if saved_collections.toggle is None:
+                        saved_collections.toggle = True
+                    else:
+                        saved_collections.toggle = not saved_collections.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter saved_number_from')
+                    saved_collections.saved_number_from = get_int()
+                elif res == 3:
+                    self.__view.view_message('Enter saved_number_to')
+                    saved_collections.saved_number_to = get_int()
+                elif res == 4:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    saved_collections.saved_ids_list = edit_set(saved_collections.saved_ids_list, int)
+                elif res == 5:
+                    if saved_collections.saved_ids_any is None:
+                        saved_collections.saved_ids_any = True
+                    else:
+                        saved_collections.saved_ids_any = not saved_collections.saved_ids_any
+                    self.__view.view_message('Changed')
                 else:
-                    saved_collections.toggle = not saved_collections.toggle
-                self.__view.view_message('Changed')
-            elif res == 2:
-                self.__view.view_message('Enter saved_number_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                saved_collections.saved_number_from = new_val
-            elif res == 3:
-                self.__view.view_message('Enter saved_number_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                saved_collections.saved_number_to = new_val
-            elif res == 4:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if saved_collections.saved_ids_list is None:
-                        saved_collections.saved_ids_list = set()
-                    saved_collections.saved_ids_list = saved_collections.saved_ids_list.union(vals)
-                elif cmd == 'REM':
-                    if saved_collections.saved_ids_list is None:
-                        continue
-                    saved_collections.saved_ids_list.difference_update(vals)
-                    if not saved_collections.saved_ids_list:
-                        saved_collections.saved_ids_list = None
-                else:
-                    self.__view.view_message('Invalid input')
-            elif res == 5:
-                if saved_collections.saved_ids_any is None:
-                    saved_collections.saved_ids_any = True
-                else:
-                    saved_collections.saved_ids_any = not saved_collections.saved_ids_any
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_users_filter(self, users_filter):
         while True:
@@ -606,55 +511,35 @@ class ControllerPSQL:
             for item in filters:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if users_filter.users_ids is None:
-                        users_filter.users_ids = set()
-                    users_filter.users_ids = users_filter.users_ids.union(vals)
-                elif cmd == 'REM':
-                    if users_filter.users_ids is None:
-                        continue
-                    users_filter.users_ids.difference_update(vals)
-                    if not users_filter.users_ids:
-                        users_filter.users_ids = None
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    users_filter.users_ids = edit_set(users_filter.users_ids, int)
+                elif res == 2:
+                    self.edit_users_filter_attributes(users_filter.attributes)
+                elif res == 3:
+                    self.edit_users_filter_history(users_filter.history)
+                elif res == 4:
+                    self.edit_users_filter_rating(users_filter.compositions_rating)
+                elif res == 5:
+                    self.edit_users_filter_rating(users_filter.playlists_rating)
+                elif res == 6:
+                    self.edit_users_filter_rating(users_filter.albums_rating)
+                elif res == 7:
+                    self.edit_users_filter_collections(users_filter.saved_playlists)
+                elif res == 8:
+                    self.edit_users_filter_collections(users_filter.saved_albums)
                 else:
-                    self.__view.view_message('Invalid input')
-            elif res == 2:
-                self.edit_users_filter_attributes(users_filter.attributes)
-            elif res == 3:
-                self.edit_users_filter_history(users_filter.history)
-            elif res == 4:
-                self.edit_users_filter_rating(users_filter.compositions_rating)
-            elif res == 5:
-                self.edit_users_filter_rating(users_filter.playlists_rating)
-            elif res == 6:
-                self.edit_users_filter_rating(users_filter.albums_rating)
-            elif res == 7:
-                self.edit_users_filter_collections(users_filter.saved_playlists)
-            elif res == 8:
-                self.edit_users_filter_collections(users_filter.saved_albums)
-            else:
-                self.__view.view_message('Invalid command')
+                    raise ValueError('Invalid command')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_compositions_filter_attributes(self, attributes):
         while True:
@@ -667,103 +552,54 @@ class ControllerPSQL:
             for item in attrs:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                self.__view.view_message('Enter title_lyrics')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                attributes.title_lyrics = new_val
-            elif res == 2:
-                if attributes.artists_ids_exclude_nulls is None:
-                    attributes.artists_ids_exclude_nulls = True
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('Enter title_lyrics')
+                    attributes.title_lyrics = get_str()
+                elif res == 2:
+                    if attributes.artists_ids_exclude_nulls is None:
+                        attributes.artists_ids_exclude_nulls = True
+                    else:
+                        attributes.artists_ids_exclude_nulls = not attributes.artists_ids_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 3:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    attributes.artists_ids = edit_set(attributes.artists_ids, int)
+                elif res == 4:
+                    self.__view.view_message('Enter duration_from')
+                    attributes.duration_from = get_int()
+                elif res == 5:
+                    self.__view.view_message('Enter duration_to')
+                    attributes.duration_to = get_int()
+                elif res == 6:
+                    if attributes.release_date_exclude_nulls is None:
+                        attributes.release_date_exclude_nulls = True
+                    else:
+                        attributes.release_date_exclude_nulls = not attributes.release_date_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 7:
+                    self.__view.view_message('Enter release_from')
+                    attributes.release_from = get_date()
+                elif res == 8:
+                    self.__view.view_message('Enter release_to')
+                    attributes.release_to = get_date()
+                elif res == 9:
+                    if attributes.search_lyrics is None:
+                        attributes.search_lyrics = True
+                    else:
+                        attributes.search_lyrics = not attributes.search_lyrics
+                    self.__view.view_message('Changed')
                 else:
-                    attributes.artists_ids_exclude_nulls = not attributes.artists_ids_exclude_nulls
-                self.__view.view_message('Changed')
-            elif res == 3:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if attributes.artists_ids is None:
-                        attributes.artists_ids = set()
-                    attributes.artists_ids = attributes.artists_ids.union(vals)
-                elif cmd == 'REM':
-                    if attributes.artists_ids is None:
-                        continue
-                    attributes.artists_ids.difference_update(vals)
-                    if not attributes.artists_ids:
-                        attributes.artists_ids = None
-                else:
-                    self.__view.view_message('Invalid input')
-            elif res == 4:
-                self.__view.view_message('Enter duration_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                attributes.duration_from = new_val
-            elif res == 5:
-                self.__view.view_message('Enter duration_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                attributes.duration_to = new_val
-            elif res == 6:
-                if attributes.release_date_exclude_nulls is None:
-                    attributes.release_date_exclude_nulls = True
-                else:
-                    attributes.release_date_exclude_nulls = not attributes.release_date_exclude_nulls
-                self.__view.view_message('Changed')
-            elif res == 7:
-                self.__view.view_message('Enter release_from')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                elif not is_valid_date(new_val):
-                    self.__view.view_message('Invalid date')
-                    continue
-                attributes.release_from = new_val
-            elif res == 8:
-                self.__view.view_message('Enter release_to')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                elif not is_valid_date(new_val):
-                    self.__view.view_message('Invalid date')
-                    continue
-                attributes.release_to = new_val
-            elif res == 9:
-                if attributes.search_lyrics is None:
-                    attributes.search_lyrics = True
-                else:
-                    attributes.search_lyrics = not attributes.search_lyrics
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_compositions_filter_history(self, history):
         while True:
@@ -776,91 +612,45 @@ class ControllerPSQL:
             for item in hist:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                if history.toggle is None:
-                    history.toggle = True
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if history.toggle is None:
+                        history.toggle = True
+                    else:
+                        history.toggle = not history.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter listened_date_from')
+                    history.listened_date_from = get_date()
+                elif res == 3:
+                    self.__view.view_message('Enter listened_date_to')
+                    history.listened_date_to = get_date()
+                elif res == 4:
+                    self.__view.view_message('Enter times_listened_from')
+                    history.times_listened_from = get_int()
+                elif res == 5:
+                    self.__view.view_message('Enter times_listened_to')
+                    history.times_listened_to = get_int()
+                elif res == 6:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    history.users_ids = edit_set(history.users_ids, int)
+                elif res == 7:
+                    if history.users_ids_any is None:
+                        history.users_ids_any = True
+                    else:
+                        history.users_ids_any = not history.users_ids_any
+                    self.__view.view_message('Changed')
                 else:
-                    history.toggle = not history.toggle
-                self.__view.view_message('Changed')
-            elif res == 2:
-                self.__view.view_message('Enter listened_date_from')
-                listened_date_from = input()
-                if not listened_date_from:
-                    listened_date_from = None
-                elif not is_valid_date(listened_date_from):
-                    self.__view.view_message('Invalid date')
-                    continue
-                history.listened_date_from = listened_date_from
-            elif res == 3:
-                self.__view.view_message('Enter listened_date_to')
-                listened_date_to = input()
-                if not listened_date_to:
-                    listened_date_to = None
-                elif not is_valid_date(listened_date_to):
-                    self.__view.view_message('Invalid date')
-                    continue
-                history.listened_date_to = listened_date_to
-            elif res == 4:
-                self.__view.view_message('Enter times_listened_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                history.times_listened_from = new_val
-            elif res == 5:
-                self.__view.view_message('Enter times_listened_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                history.times_listened_to = new_val
-            elif res == 6:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if history.users_ids is None:
-                        history.users_ids = set()
-                    history.users_ids = history.users_ids.union(vals)
-                elif cmd == 'REM':
-                    if history.users_ids is None:
-                        continue
-                    history.users_ids.difference_update(vals)
-                    if not history.users_ids:
-                        history.users_ids = None
-                else:
-                    self.__view.view_message('Invalid input')
-            elif res == 7:
-                if history.users_ids_any is None:
-                    history.users_ids_any = True
-                else:
-                    history.users_ids_any = not history.users_ids_any
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_compositions_filter_rating(self, rating):
         while True:
@@ -873,111 +663,51 @@ class ControllerPSQL:
             for item in rate:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                if rating.toggle is None:
-                    rating.toggle = True
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if rating.toggle is None:
+                        rating.toggle = True
+                    else:
+                        rating.toggle = not rating.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter rating_date_from')
+                    rating.rating_date_from = get_date()
+                elif res == 3:
+                    self.__view.view_message('Enter rating_date_to')
+                    rating.rating_date_to = get_date()
+                elif res == 4:
+                    self.__view.view_message('Enter times_rated_from')
+                    rating.times_rated_from = get_int()
+                elif res == 5:
+                    self.__view.view_message('Enter times_rated_to')
+                    rating.times_rated_to = get_int()
+                elif res == 6:
+                    self.__view.view_message('Enter average_rating_from')
+                    rating.average_rating_from = get_float()
+                elif res == 7:
+                    self.__view.view_message('Enter average_rating_to')
+                    rating.average_rating_to = get_float()
+                elif res == 8:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    rating.users_ids = edit_set(rating.users_ids, int)
+                elif res == 9:
+                    if rating.users_ids_any is None:
+                        rating.users_ids_any = True
+                    else:
+                        rating.users_ids_any = not rating.users_ids_any
+                    self.__view.view_message('Changed')
                 else:
-                    rating.toggle = not rating.toggle
-                self.__view.view_message('Changed')
-            elif res == 2:
-                self.__view.view_message('Enter rating_date_from')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                elif not is_valid_date(new_val):
-                    self.__view.view_message('Invalid date')
-                    continue
-                rating.rating_date_from = new_val
-            elif res == 3:
-                self.__view.view_message('Enter rating_date_to')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                elif not is_valid_date(new_val):
-                    self.__view.view_message('Invalid date')
-                    continue
-                rating.rating_date_to = new_val
-            elif res == 4:
-                self.__view.view_message('Enter times_rated_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.times_rated_from = new_val
-            elif res == 5:
-                self.__view.view_message('Enter times_rated_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.times_rated_to = new_val
-            elif res == 6:
-                self.__view.view_message('Enter average_rating_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_float(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.average_rating_from = new_val
-            elif res == 7:
-                self.__view.view_message('Enter average_rating_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_float(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                rating.average_rating_to = new_val
-            elif res == 8:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if rating.users_ids is None:
-                        rating.users_ids = set()
-                    rating.users_ids = rating.users_ids.union(vals)
-                elif cmd == 'REM':
-                    if rating.users_ids is None:
-                        continue
-                    rating.users_ids.difference_update(vals)
-                    if not rating.users_ids:
-                        rating.users_ids = None
-                else:
-                    self.__view.view_message('Invalid input')
-            elif res == 9:
-                if rating.users_ids_any is None:
-                    rating.users_ids_any = True
-                else:
-                    rating.users_ids_any = not rating.users_ids_any
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_compositions_filter_collections(self, collections):
         while True:
@@ -989,73 +719,39 @@ class ControllerPSQL:
             for item in saved:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                if collections.toggle is None:
-                    collections.toggle = True
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if collections.toggle is None:
+                        collections.toggle = True
+                    else:
+                        collections.toggle = not collections.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter number_belongs_from')
+                    collections.number_belongs_from = get_int()
+                elif res == 3:
+                    self.__view.view_message('Enter number_belongs_to')
+                    collections.number_belongs_to = get_int()
+                elif res == 4:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    collections.collections_list = edit_set(collections.collections_list, int)
+                elif res == 5:
+                    if collections.collections_any is None:
+                        collections.collections_any = True
+                    else:
+                        collections.collections_any = not collections.collections_any
+                    self.__view.view_message('Changed')
                 else:
-                    collections.toggle = not collections.toggle
-                self.__view.view_message('Changed')
-            elif res == 2:
-                self.__view.view_message('Enter number_belongs_from')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                collections.number_belongs_from = new_val
-            elif res == 3:
-                self.__view.view_message('Enter number_belongs_to')
-                new_val = None
-                ans = input()
-                if ans:
-                    new_val = to_int(ans)
-                    if new_val is None:
-                        self.__view.view_message('NaN')
-                        continue
-                collections.number_belongs_to = new_val
-            elif res == 4:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if collections.collections_list is None:
-                        collections.collections_list = set()
-                    collections.collections_list = collections.collections_list.union(vals)
-                elif cmd == 'REM':
-                    if collections.collections_list is None:
-                        continue
-                    collections.collections_list.difference_update(vals)
-                    if not collections.collections_list:
-                        collections.collections_list = None
-                else:
-                    self.__view.view_message('Invalid input')
-            elif res == 5:
-                if collections.collections_any is None:
-                    collections.collections_any = True
-                else:
-                    collections.collections_any = not collections.collections_any
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_compositions_filter(self, compositions_filter):
         while True:
@@ -1067,51 +763,31 @@ class ControllerPSQL:
             for item in filters:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if compositions_filter.compositions_ids is None:
-                        compositions_filter.compositions_ids = set()
-                    compositions_filter.compositions_ids = compositions_filter.compositions_ids.union(vals)
-                elif cmd == 'REM':
-                    if compositions_filter.compositions_ids is None:
-                        continue
-                    compositions_filter.compositions_ids.difference_update(vals)
-                    if not compositions_filter.compositions_ids:
-                        compositions_filter.compositions_ids = None
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    compositions_filter.compositions_ids = edit_set(compositions_filter.compositions_ids, int)
+                elif res == 2:
+                    self.edit_compositions_filter_attributes(compositions_filter.attributes)
+                elif res == 3:
+                    self.edit_compositions_filter_history(compositions_filter.history)
+                elif res == 4:
+                    self.edit_compositions_filter_rating(compositions_filter.rating)
+                elif res == 5:
+                    self.edit_compositions_filter_collections(compositions_filter.playlists)
+                elif res == 6:
+                    self.edit_compositions_filter_collections(compositions_filter.albums)
                 else:
-                    self.__view.view_message('Invalid input')
-            elif res == 2:
-                self.edit_compositions_filter_attributes(compositions_filter.attributes)
-            elif res == 3:
-                self.edit_compositions_filter_history(compositions_filter.history)
-            elif res == 4:
-                self.edit_compositions_filter_rating(compositions_filter.rating)
-            elif res == 5:
-                self.edit_compositions_filter_collections(compositions_filter.playlists)
-            elif res == 6:
-                self.edit_compositions_filter_collections(compositions_filter.albums)
-            else:
-                self.__view.view_message('Invalid command')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_artists_filter_attributes(self, attributes):
         while True:
@@ -1123,47 +799,30 @@ class ControllerPSQL:
             for item in attrs:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                self.__view.view_message('Enter name_comment')
-                new_val = input()
-                if not new_val:
-                    new_val = None
-                attributes.name_comment = new_val
-            elif res == 2:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set(arr)
-                if cmd == 'ADD':
-                    if attributes.types is None:
-                        attributes.types = set()
-                    attributes.types = attributes.types.union(vals)
-                elif cmd == 'REM':
-                    if attributes.types is None:
-                        continue
-                    attributes.types.difference_update(vals)
-                    if not attributes.types:
-                        attributes.types = None
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('Enter name_comment')
+                    attributes.name_comment = get_str()
+                elif res == 2:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    attributes.types = edit_set(attributes.types)
+                elif res == 3:
+                    if attributes.search_comments is None:
+                        attributes.search_comments = True
+                    else:
+                        attributes.search_comments = not attributes.search_comments
+                    self.__view.view_message('Changed')
                 else:
-                    self.__view.view_message('Invalid input')
-            elif res == 3:
-                if attributes.search_comments is None:
-                    attributes.search_comments = True
-                else:
-                    attributes.search_comments = not attributes.search_comments
-                self.__view.view_message('Changed')
-            else:
-                self.__view.view_message('Invalid input')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_artists_filter(self, artists_filter):
         while True:
@@ -1175,84 +834,58 @@ class ControllerPSQL:
             for item in filters:
                 self.__view.view_message(i, '-', item)
                 i += 1
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                self.__view.view_message('To add type: ADD a1 a2 a3 ...')
-                self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                command = input()
-                if not command:
-                    continue
-                arr = command.split()
-                cmd = arr[0]
-                arr.pop(0)
-                vals = set()
-                for item in arr:
-                    el = to_int(item)
-                    if el is None:
-                        self.__view.view_message(el, 'is not a number')
-                        continue
-                    vals.add(el)
-                if cmd == 'ADD':
-                    if artists_filter.artists_ids is None:
-                        artists_filter.artists_ids = set()
-                    artists_filter.artists_ids = artists_filter.artists_ids.union(vals)
-                elif cmd == 'REM':
-                    if artists_filter.artists_ids is None:
-                        continue
-                    artists_filter.artists_ids.difference_update(vals)
-                    if not artists_filter.artists_ids:
-                        artists_filter.artists_ids = None
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    artists_filter.artists_ids = edit_set(artists_filter.artists_ids, int)
+                elif res == 2:
+                    self.edit_artists_filter_attributes(artists_filter.attributes)
+                elif res == 3:
+                    self.edit_compositions_filter_history(artists_filter.history)
+                elif res == 4:
+                    self.edit_compositions_filter_rating(artists_filter.rating)
+                elif res == 5:
+                    self.edit_compositions_filter_collections(artists_filter.playlists)
+                elif res == 6:
+                    self.edit_compositions_filter_collections(artists_filter.albums)
                 else:
-                    self.__view.view_message('Invalid input')
-            elif res == 2:
-                self.edit_artists_filter_attributes(artists_filter.attributes)
-            elif res == 3:
-                self.edit_compositions_filter_history(artists_filter.history)
-            elif res == 4:
-                self.edit_compositions_filter_rating(artists_filter.rating)
-            elif res == 5:
-                self.edit_compositions_filter_collections(artists_filter.playlists)
-            elif res == 6:
-                self.edit_compositions_filter_collections(artists_filter.albums)
-            else:
-                self.__view.view_message('Invalid command')
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def edit_pagination_filter(self, pagination_filter):
         while True:
             self.__view.view_message(pagination_filter)
             self.__view.view_message('What to edit')
-            self.__view.view_message('0 - go back')
-            self.__view.view_message('1 - page')
-            self.__view.view_message('2 - page_size')
-            res = to_int(input())
-            if res is None:
-                self.__view.view_message('NaN')
-            elif res == 0:
-                break
-            elif res == 1:
-                self.__view.view_message('Enter page')
-                page = None
-                page_in = input()
-                if page_in:
-                    page = to_int(page_in)
-                    if page is None:
-                        self.__view.view_message('NaN')
-                pagination_filter.page = page
-            elif res == 2:
-                self.__view.view_message('Enter page_size')
-                page_size = None
-                page_size_in = input()
-                if page_size_in:
-                    page_size = to_int(page_size_in)
-                    if page_size is None:
-                        self.__view.view_message('NaN')
-                pagination_filter.page_size = page_size
-            else:
-                self.__view.view_message('Invalid input')
+            actions = ['go back', 'page', 'page_size']
+            i = 0
+            for item in actions:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('Enter page')
+                    pagination_filter.page = get_int()
+                elif res == 2:
+                    self.__view.view_message('Enter page_size')
+                    pagination_filter.page_size = get_int()
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def filling_menu(self):
         while True:
@@ -1265,134 +898,121 @@ class ControllerPSQL:
                 self.__view.view_message(i, '- fill', item)
                 i += 1
 
-            answer = input()
-            method_id = to_int(answer)
+            try:
+                method_id = get_int()
+                if method_id is None:
+                    raise ValueError('You need to enter action')
+                elif method_id == 0:
+                    break
+                elif method_id == 1:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-            if method_id is None:
-                self.__view.view_message('NaN')
-            elif method_id == 0:
-                break
-            elif method_id == 1:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_artists(start_number, end_number)
+                elif method_id == 2:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_artists(start_number, end_number)
-            elif method_id == 2:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_compositions(start_number, end_number)
+                elif method_id == 3:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_compositions(start_number, end_number)
-            elif method_id == 3:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_users(start_number, end_number)
+                elif method_id == 4:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_users(start_number, end_number)
-            elif method_id == 4:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_history(start_number, end_number)
+                elif method_id == 5:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_history(start_number, end_number)
-            elif method_id == 5:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_compositions_rating(start_number, end_number)
+                elif method_id == 6:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_compositions_rating(start_number, end_number)
-            elif method_id == 6:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_playlists(start_number, end_number)
+                elif method_id == 7:
+                    self.__view.view_message('Enter start number')
+                    start_number = get_int()
+                    if start_number is None or start_number < 1:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_playlists(start_number, end_number)
-            elif method_id == 7:
-                self.__view.view_message('Enter start number')
-                start_number = to_int(input())
-                if start_number is None or start_number < 1:
-                    self.__view.view_message('Invalid input')
-                    continue
+                    self.__view.view_message('Enter end number')
+                    end_number = get_int()
+                    if end_number is None or end_number <= start_number:
+                        raise ValueError('Invalid input')
 
-                self.__view.view_message('Enter end number')
-                end_number = to_int(input())
-                if end_number is None or end_number <= start_number:
-                    self.__view.view_message('Invalid input')
-                    continue
-
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.__model.fill_playlists_compositions(start_number, end_number)
-            else:
-                self.__view.view_message('Invalid input')
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.__model.fill_playlists_compositions(start_number, end_number)
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def call_interface(self):
         users_filter = UserFilter()
