@@ -1020,28 +1020,17 @@ class ControllerPSQL:
         artists_filter = ArtistFilter()
         pagination_filter = PaginationFilter()
 
-        # method_list = [func for func in dir(ControllerPSQL) if callable(getattr(ControllerPSQL, func)) and
-        #                not func.startswith('__') and func != 'call_interface']
-        method_list = ['add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
-                       'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
-                       'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
-                       'get_album', 'get_album_rating', 'get_artist_rating', 'get_artists',
-                       'get_composition_listening_history', 'get_composition_rating', 'get_compositions',
-                       'get_playlist', 'get_playlist_rating', 'get_user_albums', 'get_user_created_playlists',
-                       'get_user_listening_history', 'get_user_playlists', 'get_users', 'listen_composition',
-                       'rate_album', 'rate_composition', 'rate_playlist', 'remove_album_composition',
-                       'remove_playlist_composition', 'remove_user_album', 'remove_user_playlist', 'unrate_album',
-                       'unrate_composition', 'unrate_playlist', 'update_album', 'update_artist', 'update_composition',
-                       'update_playlist', 'update_user']
+        # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
+        #                not func.startswith('__') and not func.startswith('fill_')]
         method_list = ['add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
                        'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
                        'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
                        'get_album', 'get_albums', 'get_artists', 'get_compositions', 'get_listening_history',
                        'get_playlist', 'get_playlists', 'get_rating', 'get_users', 'listen_composition', 'rate_album',
                        'rate_composition', 'rate_playlist', 'remove_album_composition', 'remove_playlist_composition',
-                       'remove_user_album', 'remove_user_playlist', 'unrate_album', 'unrate_composition',
-                       'unrate_playlist', 'update_album', 'update_artist', 'update_composition', 'update_playlist',
-                       'update_user']
+                       'remove_user_album', 'remove_user_playlist', 'unlisten_composition', 'unrate_album',
+                       'unrate_composition', 'unrate_playlist', 'update_album', 'update_artist', 'update_composition',
+                       'update_playlist', 'update_user']
         while True:
             i = 1
             self.__view.view_message('Choose method')
