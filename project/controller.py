@@ -1,6 +1,7 @@
 from model import ModelPSQL, PaginationFilter
 import view
 import datetime
+from distutils.util import strtobool
 
 from models.user import User
 from models.composition import Composition
@@ -35,6 +36,83 @@ def is_valid_date(string):
         return True
 
 
+def get_int():
+    v = input()
+    if v:
+        return int(v)
+    else:
+        return None
+
+
+def get_float():
+    v = input()
+    if v:
+        return float(v)
+    else:
+        return None
+
+
+def get_bool():
+    v = input()
+    if v:
+        return bool(strtobool(v))
+    else:
+        return None
+
+
+def get_str():
+    v = input()
+    if v:
+        return v
+    else:
+        return None
+
+
+def get_date():
+    """
+    Getting date string from YYYY-MM-DD format
+    """
+    v = input()
+    if v:
+        datetime.datetime.strptime(v, '%Y-%m-%d')
+        return v
+    else:
+        return None
+
+
+def get_partial_date():
+    """
+    Parsing date from YYYY-MM-DD format
+    For None field input 0
+    Returns tuple(year, month, day)
+    """
+    v = input()
+    if v:
+        splitted = v.split('-')
+        if len(splitted) != 3:
+            raise ValueError("time data '" + v + "' does not match format 'YYYY-MM-DD'")
+        year = int(splitted[0])
+        month = int(splitted[1])
+        day = int(splitted[2])
+        if year < 0 or month < 0 or day < 0:
+            raise ValueError("time data '" + v + "' does not match format 'YYYY-MM-DD'")
+        if year == 0 and month == 0 and day == 0:
+            return None, None, None
+        elif year != 0 and month == 0 and day == 0:
+            return year, None, None
+        elif year != 0 and month != 0 and day == 0:
+            if not 1 <= month <= 12:
+                raise ValueError("time data '" + v + "' does not match format 'YYYY-MM-DD'")
+            return year, month, None
+        elif year != 0 and month != 0 and day != 0:
+            datetime.datetime.strptime(v, '%Y-%m-%d')
+            return year, month, day
+        else:
+            raise ValueError("time data '" + v + "' does not match format 'YYYY-MM-DD'")
+    else:
+        return None
+
+
 class ControllerPSQL:
 
     def __init__(self, connection):
@@ -45,117 +123,62 @@ class ControllerPSQL:
 
     def construct_album(self):
         self.__view.view_message('Enter title')
-        title = input()
+        title = get_str()
         if not title:
-            self.__view.view_message('Title can not be None')
-            return None
+            raise ValueError("Variable 'title' can not be None")
         self.__view.view_message('Enter release year')
-        release_year = None
-        release_year_in = input()
-        if release_year_in:
-            release_year = to_int(release_year_in)
-            if release_year is None:
-                self.__view.view_message('NaN')
-                return None
+        release_year = get_int()
         return Album(0, title, release_year)
 
     def construct_artist(self):
         self.__view.view_message('Enter name')
-        name = input()
-        if not name:
-            self.__view.view_message('Name can not be None')
-            return None
+        name = get_str()
+        if name is None:
+            raise ValueError("Variable 'name' can not be None")
         self.__view.view_message('Choose type')
         types = ['person', 'group', 'orchestra', 'choir', 'character', 'other']
         i = 1
         for item in types:
             self.__view.view_message(i, '-', item)
             i += 1
-        type_id = to_int(input())
+        type_id = get_int()
         if type_id is None or not 1 <= type_id <= 6:
-            self.__view.view_message('Invalid input')
-            return None
+            raise ValueError("Variable 'type_id' invalid input")
 
         return Artist(0, name, type_id)
 
     def construct_composition(self):
         self.__view.view_message('Enter title')
-        title = input()
-        if not title:
-            self.__view.view_message('Title can not be None')
-
-        self.__view.view_message('Enter artist id')
-        artist_id_in = input()
-        artist_id = None
-        if artist_id_in:
-            artist_id = to_int(artist_id_in)
-            if artist_id is None:
-                self.__view.view_message('NaN')
-                return None
+        title = get_str()
+        if title is None:
+            raise ValueError("Variable 'title' can not be None")
 
         self.__view.view_message('Enter duration (seconds)')
-        duration = to_int(input())
+        duration = get_int()
         if duration is None:
-            self.__view.view_message('NaN')
-            return None
+            raise ValueError("Variable 'duration' can not be None")
 
         self.__view.view_message('Enter path to file')
-        path_to_file = input()
-        if not path_to_file:
-            self.__view.view_message('Path can not be None')
-            return None
+        path_to_file = get_str()
+        if path_to_file is None:
+            raise ValueError("Variable 'path_to_file' can not be None")
 
         self.__view.view_message('Enter lyrics')
-        lyrics = input()
-        if not lyrics:
-            lyrics = None
+        lyrics = get_str()
 
-        release_year = None
-        release_month = None
-        release_day = None
-        self.__view.view_message('Enter release year')
-        year_in = input()
-        if year_in:
-            release_year = to_int(year_in)
-            if release_year is None:
-                self.__view.view_message('Nan')
-                return None
-            self.__view.view_message('Enter release month')
-            month_in = input()
-            if month_in:
-                release_month = to_int(month_in)
-                if release_month is None or not 1 <= release_month <= 12:
-                    self.__view.view_message('Invalid month')
-                    return None
-                self.__view.view_message('Enter release day')
-                day_in = input()
-                if day_in:
-                    release_day = to_int(day_in)
-                    if release_day is None:
-                        self.__view.view_message('NaN')
-                    try:
-                        datetime.datetime(release_year, release_month, release_day)
-                    except ValueError:
-                        self.__view.view_message('Invalid date')
-                        return None
+        date_tuple = get_partial_date()
+        self.__view.view_message('Enter release date in format YYYY-MM-DD, for None field input 0')
 
-        return Composition(0, title, duration, path_to_file, 0, release_year, release_month, release_day, lyrics)
+        return Composition(0, title, duration, path_to_file, 0, date_tuple[0], date_tuple[1], date_tuple[2], lyrics)
 
     def construct_playlist(self):
         self.__view.view_message('Enter title')
-        title = input()
-        if not title:
-            self.__view.view_message('Title can not be None')
-            return None
+        title = get_str()
+        if title is None:
+            raise ValueError("Variable 'title' can not be None")
 
         self.__view.view_message('Enter creator_id')
-        creator_id = None
-        creator_in = input()
-        if creator_in:
-            creator_id = to_int(creator_in)
-            if creator_id is None:
-                self.__view.view_message('NaN')
-                return None
+        creator_id = get_int()
 
         self.__view.view_message('Choose privacy')
         privacy_types = ['public', 'unlisted', 'private']
@@ -163,62 +186,38 @@ class ControllerPSQL:
         for item in privacy_types:
             self.__view.view_message(i, '-', item)
             i += 1
-        privacy_id = to_int(input())
+        privacy_id = get_int()
         if privacy_id is None or not 1 <= privacy_id <= 3:
-            self.__view.view_message('Invalid input')
-            return None
+            raise ValueError("Variable 'privacy_id' invalid input")
 
-        return Playlist(0, title, privacy_id, creator_id=creator_id)
+        return Playlist(0, title, privacy_id, creator_id)
 
     def construct_user(self):
         self.__view.view_message('Enter username')
-        username = input()
-        if not username:
-            self.__view.view_message('Username can not be None')
-            return None
+        username = get_str()
+        if username is None:
+            raise ValueError("Variable 'username' can not be None")
 
         self.__view.view_message('Enter password hash')
-        password_hash = input()
-        if not password_hash:
-            self.__view.view_message('Password hash can not be None')
-            return None
+        password_hash = get_str()
+        if password_hash is None:
+            raise ValueError("Variable 'password_hash' can not be None")
 
         self.__view.view_message('Enter registration date (ISO8601)')
-        registration_date = input()
-        if not registration_date:
-            self.__view.view_message('Can not be None')
-            return None
-        if not is_valid_date(registration_date):
-            self.__view.view_message('Invalid date')
-            return None
+        registration_date = get_date()
+        if registration_date is None:
+            raise ValueError("Variable 'registration_date' can not be None")
 
-        self.__view.view_message('Is active? yes/no')
-        is_active_in = input()
-        is_active = None
-        if not is_active_in:
-            self.__view.view_message('Can not be None')
-            return None
-        if is_active_in == 'yes':
-            is_active = True
-        elif is_active_in == 'no':
-            is_active = False
-        else:
-            self.__view.view_message('Invalid input')
-            return None
+        self.__view.view_message('Is active?')
+        is_active = get_bool()
+        if is_active is None:
+            raise ValueError("Variable 'registration_date' can not be None")
 
         self.__view.view_message('Enter full name')
-        full_name = input()
-        if not full_name:
-            full_name = None
+        full_name = get_str()
 
         self.__view.view_message('Enter birth date (ISO8601)')
-        birth_date = input()
-        if not birth_date:
-            birth_date = None
-        else:
-            if not is_valid_date(birth_date):
-                self.__view.view_message('Invalid date')
-                return None
+        birth_date = get_date()
 
         self.__view.view_message('Choose gender')
         genders = ['male', 'female', 'other']
@@ -227,9 +226,8 @@ class ControllerPSQL:
             self.__view.view_message(i, '-', item)
             i += 1
         gender_id = to_int(input())
-        if gender_id is None or not 1 <= gender_id <= 3:
-            self.__view.view_message('Invalid input')
-            return None
+        if not 1 <= gender_id <= 3:
+            raise ValueError("Variable 'gender_id' invalid input")
 
         return User(0, username, password_hash, registration_date, is_active, full_name, birth_date, gender_id)
 
@@ -237,61 +235,40 @@ class ControllerPSQL:
         self.__view.view_message('Enter user_id')
         user_id = to_int(input())
         if user_id is None:
-            self.__view.view_message('NaN')
-            return None
+            raise ValueError("Variable 'user_id' can not be None")
 
         self.__view.view_message('Enter composition_id')
         composition_id = to_int(input())
         if composition_id is None:
-            self.__view.view_message('NaN')
-            return None
+            raise ValueError("Variable 'composition_id' can not be None")
 
         self.__view.view_message('Enter date (ISO8601)')
-        action_date = to_int(input())
-        if not action_date:
-            self.__view.view_message('Can not be None')
-            return None
-        if not is_valid_date(action_date):
-            self.__view.view_message('Invalid date')
-            return None
+        action_date = get_date()
+        if action_date is None:
+            raise ValueError("Variable 'listening_date' can not be None")
 
-        return HistoryRecord(0,composition_id, user_id, action_date)
+        return HistoryRecord(0, composition_id, user_id, action_date)
 
     def construct_rating_record(self):
         self.__view.view_message('Enter user_id')
-        user_id = to_int(input())
+        user_id = get_int()
         if user_id is None:
-            self.__view.view_message('NaN')
-            return None
+            raise ValueError("Variable 'user_id' can not be None")
 
         self.__view.view_message('Enter rated_id')
-        rated_id = to_int(input())
+        rated_id = get_int()
         if rated_id is None:
-            self.__view.view_message('NaN')
-            return None
+            raise ValueError("Variable 'rated_id' can not be None")
 
         self.__view.view_message('Enter date (ISO8601)')
-        action_date = input()
-        if not action_date:
-            self.__view.view_message('Can not be None')
-            return None
-        if not is_valid_date(action_date):
-            self.__view.view_message('Invalid date')
-            return None
+        action_date = get_date()
+        if action_date is None:
+            raise ValueError("Variable 'rating_date' can not be None")
 
-        self.__view.view_message('Is satisfied? yes/no')
-        is_satisfied_in = input()
-        is_satisfied = None
-        if not is_satisfied_in:
-            self.__view.view_message('Can not be None')
-            return None
-        if is_satisfied_in == 'yes':
-            is_satisfied = True
-        elif is_satisfied_in == 'no':
-            is_satisfied = False
-        else:
-            self.__view.view_message('Invalid input')
-            return None
+        self.__view.view_message('Is satisfied?')
+        is_satisfied = get_bool()
+        if is_satisfied is None:
+            raise ValueError("Variable 'registration_date' can not be None")
 
         return Rating(0, rated_id, user_id, is_satisfied, action_date)
 
