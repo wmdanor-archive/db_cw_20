@@ -608,6 +608,17 @@ class ModelPSQL:
         else:
             return dict(row)
 
+    def unlisten_composition(self, record_id):
+        self.__cursor.execute('DELETE FROM listening_history '
+                              'WHERE record_id = %s '
+                              'RETURNING *',
+                              (record_id,))
+        row = self.__cursor.fetchone()
+        if row is None:
+            return None
+        else:
+            return dict(row)
+
     def rate_composition(self, rating_model):
         self.__cursor.execute('INSERT INTO compositions_rating '
                               '(composition_id, user_id, satisfied, rating_date) '

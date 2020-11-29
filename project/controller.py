@@ -1033,6 +1033,15 @@ class ControllerPSQL:
                        'remove_playlist_composition', 'remove_user_album', 'remove_user_playlist', 'unrate_album',
                        'unrate_composition', 'unrate_playlist', 'update_album', 'update_artist', 'update_composition',
                        'update_playlist', 'update_user']
+        method_list = ['add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
+                       'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
+                       'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
+                       'get_album', 'get_albums', 'get_artists', 'get_compositions', 'get_listening_history',
+                       'get_playlist', 'get_playlists', 'get_rating', 'get_users', 'listen_composition', 'rate_album',
+                       'rate_composition', 'rate_playlist', 'remove_album_composition', 'remove_playlist_composition',
+                       'remove_user_album', 'remove_user_playlist', 'unrate_album', 'unrate_composition',
+                       'unrate_playlist', 'update_album', 'update_artist', 'update_composition', 'update_playlist',
+                       'update_user']
         while True:
             i = 1
             self.__view.view_message('Choose method')
@@ -1042,402 +1051,276 @@ class ControllerPSQL:
                 self.__view.view_message(i, '-', method)
                 i += 1
 
-            answer = input()
-            method_id = to_int(answer)
-
-            if method_id is None:
-                self.__view.view_message('NaN')
-            elif method_id == -1:
-                self.__view.view_message('Closing')
-                break
-            elif method_id == 0:
-                self.filling_menu()
-            elif method_id == 1:
-                self.__view.view_message('Enter album_id and composition_id:')
-                album_id = to_int(input())
-                composition_id = to_int(input())
-                if album_id is None or composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
+            try:
+                method_id = get_int()
+                if method_id is None:
+                    raise ValueError('You need to enter action')
+                elif method_id == -1:
+                    self.__view.view_message('Closing')
+                    break
+                elif method_id == 0:
+                    self.filling_menu()
+                elif method_id == 1:
+                    self.__view.view_message('Enter album_id and composition_id:')
+                    album_id = get_int()
+                    composition_id = get_int()
                     self.add_album_composition(album_id, composition_id)
-            elif method_id == 2:
-                self.__view.view_message('Enter playlist_id and composition_id:')
-                playlist_id = to_int(input())
-                composition_id = to_int(input())
-                if playlist_id is None or composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
+                elif method_id == 2:
+                    self.__view.view_message('Enter playlist_id and composition_id:')
+                    playlist_id = get_int()
+                    composition_id = get_int()
                     self.add_playlist_composition(playlist_id, composition_id)
-            elif method_id == 3:
-                self.__view.view_message('Enter album_id and user_id:')
-                album_id = to_int(input())
-                user_id = to_int(input())
-                if album_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
+                elif method_id == 3:
+                    self.__view.view_message('Enter album_id and user_id:')
+                    album_id = get_int()
+                    user_id = get_int()
                     self.add_user_album(album_id, user_id)
-            elif method_id == 4:
-                self.__view.view_message('Enter playlist_id and user_id:')
-                playlist_id = to_int(input())
-                user_id = to_int(input())
-                if playlist_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
+                elif method_id == 4:
+                    self.__view.view_message('Enter playlist_id and user_id:')
+                    playlist_id = get_int()
+                    user_id = get_int()
                     self.add_user_playlist(playlist_id, user_id)
-            elif method_id == 5:
-                album = self.construct_album()
-                if album is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.create_album(album)
-            elif method_id == 6:
-                artist = self.construct_artist()
-                if artist is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.create_artist(artist)
-            elif method_id == 7:
-                composition = self.construct_composition()
-                if composition is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.create_composition(composition)
-            elif method_id == 8:
-                playlist = self.construct_playlist()
-                if playlist is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.create_playlist(playlist)
-            elif method_id == 9:
-                user = self.construct_user()
-                if user is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.create_user(user)
-            elif method_id == 10:
-                self.__view.view_message('Enter album id')
-                album_id = to_int(input())
-                if album_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.delete_album(album_id)
-            elif method_id == 11:
-                self.__view.view_message('Enter artist id')
-                artist_id = to_int(input())
-                if artist_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.delete_artist(artist_id)
-            elif method_id == 12:
-                self.__view.view_message('Enter composition id')
-                composition_id = to_int(input())
-                if composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.delete_composition(composition_id)
-            elif method_id == 13:
-                self.__view.view_message('Enter playlist id')
-                playlist_id = to_int(input())
-                if playlist_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.delete_artist(playlist_id)
-            elif method_id == 14:
-                self.__view.view_message('Enter user id')
-                user_id = to_int(input())
-                if user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.delete_user(user_id)
-            elif method_id == 15:
-                self.__view.view_message('Enter album id')
-                album_id = to_int(input())
-                if album_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_album(album_id)
-            elif method_id == 16:
-                self.__view.view_message('Enter album id')
-                album_id = to_int(input())
-                if album_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_album_rating(album_id)
-            elif method_id == 17:
-                self.__view.view_message('Enter artist id')
-                artist_id = to_int(input())
-                if artist_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_artist_rating(artist_id)
-            elif method_id == 18:
-                while True:
-                    self.__view.view_message('Current filters')
-                    self.__view.view_message(artists_filter)
-                    self.__view.view_message(pagination_filter)
-                    self.__view.view_message('Choose action')
-                    self.__view.view_message('0 - go back')
-                    self.__view.view_message('1 - execute')
-                    self.__view.view_message('2 - edit filter')
-                    self.__view.view_message('3 - change pagination')
-                    res = to_int(input())
-                    if res is None:
-                        self.__view.view_message('NaN')
-                        continue
-                    if res == 0:
-                        break
-                    elif res == 1:
-                        self.get_artists(artists_filter, pagination_filter)
-                    elif res == 2:
-                        self.edit_artists_filter(artists_filter)
-                    elif res == 3:
-                        self.edit_pagination_filter(pagination_filter)
-                    else:
-                        self.__view.view_message('Invalid input')
-            elif method_id == 19:
-                self.__view.view_message('Enter composition id')
-                composition_id = to_int(input())
-                if composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_composition_listening_history(composition_id)
-            elif method_id == 20:
-                self.__view.view_message('Enter composition id')
-                composition_id = to_int(input())
-                if composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_composition_rating(composition_id)
-            elif method_id == 21:
-                while True:
-                    self.__view.view_message('Current filters')
-                    self.__view.view_message(compositions_filter)
-                    self.__view.view_message(pagination_filter)
-                    self.__view.view_message('Choose action')
-                    self.__view.view_message('0 - go back')
-                    self.__view.view_message('1 - execute')
-                    self.__view.view_message('2 - edit filter')
-                    self.__view.view_message('3 - change pagination')
-                    res = to_int(input())
-                    if res is None:
-                        self.__view.view_message('NaN')
-                        continue
-                    if res == 0:
-                        break
-                    elif res == 1:
-                        self.get_compositions(compositions_filter, pagination_filter)
-                    elif res == 2:
-                        self.edit_compositions_filter(compositions_filter)
-                    elif res == 3:
-                        self.edit_pagination_filter(pagination_filter)
-                    else:
-                        self.__view.view_message('Invalid input')
-            elif method_id == 22:
-                self.__view.view_message('Enter playlist id')
-                playlist_id = to_int(input())
-                if playlist_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_playlist(playlist_id)
-            elif method_id == 23:
-                self.__view.view_message('Enter playlist id')
-                playlist_id = to_int(input())
-                if playlist_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_playlist_rating(playlist_id)
-            elif method_id == 24:
-                self.__view.view_message('Enter user id')
-                user_id = to_int(input())
-                if user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_user_albums(user_id)
-            elif method_id == 25:
-                self.__view.view_message('Enter user id')
-                user_id = to_int(input())
-                if user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_user_created_playlists(user_id)
-            elif method_id == 26:
-                self.__view.view_message('Enter user id')
-                user_id = to_int(input())
-                if user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_user_listening_history(user_id)
-            elif method_id == 27:
-                self.__view.view_message('Enter user id')
-                user_id = to_int(input())
-                if user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.get_user_playlists(user_id)
-            elif method_id == 28:
-                while True:
-                    self.__view.view_message('Current filters')
-                    self.__view.view_message(users_filter)
-                    self.__view.view_message(pagination_filter)
-                    self.__view.view_message('Choose action')
-                    self.__view.view_message('0 - go back')
-                    self.__view.view_message('1 - execute')
-                    self.__view.view_message('2 - edit filter')
-                    self.__view.view_message('3 - change pagination')
-                    res = to_int(input())
-                    if res is None:
-                        self.__view.view_message('NaN')
-                        continue
-                    if res == 0:
-                        break
-                    elif res == 1:
-                        self.get_users(users_filter, pagination_filter)
-                    elif res == 2:
-                        self.edit_users_filter(users_filter)
-                    elif res == 3:
-                        self.edit_pagination_filter(pagination_filter)
-                    else:
-                        self.__view.view_message('Invalid input')
-            elif method_id == 29:
-                record = self.construct_history_record()
-                if record is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.listen_composition(record)
-            elif method_id == 30:
-                record = self.construct_rating_record()
-                if record is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.rate_album(record)
-            elif method_id == 31:
-                record = self.construct_rating_record()
-                if record is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.rate_composition(record)
-            elif method_id == 32:
-                record = self.construct_rating_record()
-                if record is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.rate_playlist(record)
-            elif method_id == 33:
-                self.__view.view_message('Enter album_id and composition_id:')
-                album_id = to_int(input())
-                composition_id = to_int(input())
-                if album_id is None or composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.remove_album_composition(album_id, composition_id)
-            elif method_id == 34:
-                self.__view.view_message('Enter playlist_id and composition_id:')
-                playlist_id = to_int(input())
-                composition_id = to_int(input())
-                if playlist_id is None or composition_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.remove_playlist_composition(playlist_id, composition_id)
-            elif method_id == 35:
-                self.__view.view_message('Enter album_id and user_id:')
-                album_id = to_int(input())
-                user_id = to_int(input())
-                if album_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.remove_user_album(album_id, user_id)
-            elif method_id == 36:
-                self.__view.view_message('Enter playlist_id and user_id:')
-                playlist_id = to_int(input())
-                user_id = to_int(input())
-                if playlist_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.remove_user_playlist(playlist_id, user_id)
-            elif method_id == 37:
-                self.__view.view_message('Enter album_id and user_id:')
-                album_id = to_int(input())
-                user_id = to_int(input())
-                if album_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.unrate_album(album_id, user_id)
-            elif method_id == 38:
-                self.__view.view_message('Enter composition_id and user_id:')
-                composition_id = to_int(input())
-                user_id = to_int(input())
-                if composition_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.unrate_composition(composition_id, user_id)
-            elif method_id == 39:
-                self.__view.view_message('Enter playlist_id and user_id:')
-                playlist_id = to_int(input())
-                user_id = to_int(input())
-                if playlist_id is None or user_id is None:
-                    self.__view.view_message('NaN')
-                else:
-                    self.unrate_playlist(playlist_id, user_id)
-            elif method_id == 40:
+                elif method_id == 5:
                     album = self.construct_album()
-                    if album is None:
-                        continue
-                    self.__view.view_message('Are you sure? yes/no')
-                    check = input()
-                    if check == 'yes':
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.create_album(album)
+                elif method_id == 6:
+                    artist = self.construct_artist()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.create_artist(artist)
+                elif method_id == 7:
+                    composition = self.construct_composition()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.create_composition(composition)
+                elif method_id == 8:
+                    playlist = self.construct_playlist()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.create_playlist(playlist)
+                elif method_id == 9:
+                    user = self.construct_user()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.create_user(user)
+                elif method_id == 10:
+                    self.__view.view_message('Enter album id')
+                    album_id = get_int()
+                    self.delete_album(album_id)
+                elif method_id == 11:
+                    self.__view.view_message('Enter artist id')
+                    artist_id = get_int()
+                    self.delete_artist(artist_id)
+                elif method_id == 12:
+                    self.__view.view_message('Enter composition id')
+                    composition_id = get_int()
+                    self.delete_composition(composition_id)
+                elif method_id == 13:
+                    self.__view.view_message('Enter playlist id')
+                    playlist_id = get_int()
+                    self.delete_artist(playlist_id)
+                elif method_id == 14:
+                    self.__view.view_message('Enter user id')
+                    user_id = get_int()
+                    self.delete_user(user_id)
+                elif method_id == 15:
+                    self.__view.view_message('Enter album id')
+                    album_id = get_int()
+                    self.get_album(album_id)
+                elif method_id == 16:  # get albums
+                    pass
+                elif method_id == 17:  # get artists
+                    try:
+                        while True:
+                            self.__view.view_message('Current filters')
+                            self.__view.view_message(artists_filter)
+                            self.__view.view_message(pagination_filter)
+                            self.__view.view_message('Choose action')
+                            self.__view.view_message('0 - go back')
+                            self.__view.view_message('1 - execute')
+                            self.__view.view_message('2 - edit filter')
+                            self.__view.view_message('3 - change pagination')
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_artists(artists_filter, pagination_filter)
+                            elif res == 2:
+                                self.edit_artists_filter(artists_filter)
+                            elif res == 3:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                    except Exception as err:
+                        self.__view.view_exception(err)
+                elif method_id == 18:  # get compositions
+                    try:
+                        while True:
+                            self.__view.view_message('Current filters')
+                            self.__view.view_message(compositions_filter)
+                            self.__view.view_message(pagination_filter)
+                            self.__view.view_message('Choose action')
+                            self.__view.view_message('0 - go back')
+                            self.__view.view_message('1 - execute')
+                            self.__view.view_message('2 - edit filter')
+                            self.__view.view_message('3 - change pagination')
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_compositions(compositions_filter, pagination_filter)
+                            elif res == 2:
+                                self.edit_compositions_filter(compositions_filter)
+                            elif res == 3:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                    except Exception as err:
+                        self.__view.view_exception(err)
+                elif method_id == 19:  # get listening history
+                    pass
+                elif method_id == 20:
+                    self.__view.view_message('Enter playlist id')
+                    playlist_id = get_int()
+                    self.get_playlist(playlist_id)
+                elif method_id == 21:  # get playlists
+                    pass
+                elif method_id == 22:  # get rating
+                    pass
+                elif method_id == 23:  # get users
+                    try:
+                        while True:
+                            self.__view.view_message('Current filters')
+                            self.__view.view_message(users_filter)
+                            self.__view.view_message(pagination_filter)
+                            self.__view.view_message('Choose action')
+                            self.__view.view_message('0 - go back')
+                            self.__view.view_message('1 - execute')
+                            self.__view.view_message('2 - edit filter')
+                            self.__view.view_message('3 - change pagination')
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_users(users_filter, pagination_filter)
+                            elif res == 2:
+                                self.edit_users_filter(users_filter)
+                            elif res == 3:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                    except Exception as err:
+                        self.__view.view_exception(err)
+                elif method_id == 24:
+                    record = self.construct_history_record()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.listen_composition(record)
+                elif method_id == 25:
+                    record = self.construct_rating_record()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.rate_album(record)
+                elif method_id == 26:
+                    record = self.construct_rating_record()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.rate_composition(record)
+                elif method_id == 27:
+                    record = self.construct_rating_record()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.rate_playlist(record)
+                elif method_id == 28:
+                    self.__view.view_message('Enter album_id and composition_id:')
+                    album_id = get_int()
+                    composition_id = get_int()
+                    self.remove_album_composition(album_id, composition_id)
+                elif method_id == 29:
+                    self.__view.view_message('Enter playlist_id and composition_id:')
+                    playlist_id = get_int()
+                    composition_id = get_int()
+                    self.remove_playlist_composition(playlist_id, composition_id)
+                elif method_id == 30:
+                    self.__view.view_message('Enter album_id and user_id:')
+                    album_id = get_int()
+                    user_id = get_int()
+                    self.remove_user_album(album_id, user_id)
+                elif method_id == 31:
+                    self.__view.view_message('Enter playlist_id and user_id:')
+                    playlist_id = get_int()
+                    user_id = get_int()
+                    self.remove_user_playlist(playlist_id, user_id)
+                elif method_id == 32:
+                    self.__view.view_message('Enter record id')
+                    record_id = get_int()
+                    self.unlisten_composition(record_id)
+                elif method_id == 33:
+                    self.__view.view_message('Enter album_id and user_id:')
+                    album_id = get_int()
+                    user_id = get_int()
+                    self.unrate_album(album_id, user_id)
+                elif method_id == 34:
+                    self.__view.view_message('Enter composition_id and user_id:')
+                    composition_id = get_int()
+                    user_id = get_int()
+                    self.unrate_composition(composition_id, user_id)
+                elif method_id == 35:
+                    self.__view.view_message('Enter playlist_id and user_id:')
+                    playlist_id = get_int()
+                    user_id = get_int()
+                    self.unrate_playlist(playlist_id, user_id)
+                elif method_id == 36:
+                    album = self.construct_album()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
                         self.update_album(album)
-            elif method_id == 41:
-                artist = self.construct_artist()
-                if artist is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.update_artist(artist)
-            elif method_id == 42:
-                composition = self.construct_composition()
-                if composition is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.update_composition(composition)
-            elif method_id == 43:
-                playlist = self.construct_playlist()
-                if playlist is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.update_playlist(playlist)
-            elif method_id == 44:
-                user = self.construct_user()
-                if user is None:
-                    continue
-                self.__view.view_message('Are you sure? yes/no')
-                check = input()
-                if check == 'yes':
-                    self.update_user(user)
-            else:
-                self.__view.view_message('Invalid input')
+                elif method_id == 37:
+                    artist = self.construct_artist()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.update_artist(artist)
+                elif method_id == 38:
+                    composition = self.construct_composition()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.update_composition(composition)
+                elif method_id == 39:
+                    playlist = self.construct_playlist()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.update_playlist(playlist)
+                elif method_id == 40:
+                    user = self.construct_user()
+                    self.__view.view_message('Are you sure?')
+                    check = get_bool()
+                    if check:
+                        self.update_user(user)
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
 
     def get_users(self, users_filter, pagination_filter):
         try:
@@ -1587,6 +1470,14 @@ class ControllerPSQL:
         try:
             result = self.__model.listen_composition(history_record)
             self.__view.view_entity_list(result, 'History record', 'Created')
+            self.__view.view_query_runtime(self.__model.last_query_runtime)
+        except Exception as err:
+            self.__view.view_exception(err)
+
+    def unlisten_composition(self, history_record):
+        try:
+            result = self.__model.unlisten_composition(history_record)
+            self.__view.view_entity_list(result, 'History record', 'Deleted')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)
