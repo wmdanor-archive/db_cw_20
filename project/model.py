@@ -209,7 +209,7 @@ class ModelPSQL:
             '%s, row(%s, %s, %s, %s),'
             '%s, row(%s, %s, %s, %s), '
             'row(%s, %s), %s)',
-            (to_setlike_list(compositions_filter.composition_ids),
+            (to_setlike_list(compositions_filter.compositions_ids),
              compositions_filter.attributes.title_lyrics,
              compositions_filter.attributes.artists_ids_exclude_nulls,
              to_setlike_list(compositions_filter.attributes.artists_ids),

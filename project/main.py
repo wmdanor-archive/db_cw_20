@@ -70,32 +70,53 @@ hf.compositions_ids = 1
 hf.composition_listened_counter = True
 
 hist = m.get_listening_history(hf, [4], PaginationFilter())
-for item in hist:
-    print(item)
 
-d1 = date(2016, 11, 3)
-d2 = date(2020, 10, 30)
-ts = (d2 - d1)/4
-arr = []
-i = 0
-while i < 5:
-    arr.append(d1 + ts*i)
-    i += 1
+# d1 = date(2016, 11, 3)
+# d2 = date(2020, 10, 30)
+# ts = (d2 - d1)/4
+# arr = []
+# i = 0
+# while i < 5:
+#     arr.append(d1 + ts*i)
+#     i += 1
+#
+# t1 = 0
+# t2 = 810
+#
+# ax = plt.gca()
+# formatter = mdates.DateFormatter("%Y-%m-%d")
+# ax.xaxis.set_major_formatter(formatter)
+#
+# locator = mdates.DayLocator()
+# ax.xaxis.set_major_locator(locator)
 
-t1 = 0
-t2 = 810
+x_arr = []
+y_arr = []
 
-ax = plt.gca()
-formatter = mdates.DateFormatter("%Y-%m-%d")
-ax.xaxis.set_major_formatter(formatter)
-
-locator = mdates.DayLocator()
-ax.xaxis.set_major_locator(locator)
-
-points = []
-for item in hist:
-    plt.scatter(item['listening_date'], item['times_composition_listened'])
+s = len(hist)
+dt = int(s/99)
+for i in range(0, 100):
+    x_arr.append(hist[i*dt]['listening_date'])
+    y_arr.append(hist[i * dt]['times_composition_listened'])
 
 fig = plt.figure()
-plt.plot(arr, [0, 200, 400, 600, 800])
+plt.plot(x_arr, y_arr)
 plt.show()
+
+# ----------------------------------------------------------------
+
+cf = CompositionFilter()
+cf.rating.toggle = True
+pf = PaginationFilter()
+pf.page_size = 20
+pf.page = 1
+comps = m.get_compositions(cf, [7], pf)
+
+x_arr = []
+y_arr = []
+
+s = len(comps)
+dt = int(s/99)
+for i in range(0, 100):
+    x_arr.append(hist[i*dt]['listening_date'])
+    y_arr.append(hist[i * dt]['times_composition_listened'])
