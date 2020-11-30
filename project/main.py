@@ -1,19 +1,25 @@
 import psycopg2
 
 from model import PaginationFilter
-import view
+from datetime import date
 from controller import ControllerPSQL
 from model import ModelPSQL
 
 from models.album import Album
 from models.rating import Rating
 from models.history_record import HistoryRecord
+from models.filters import *
+
+import numpy
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 
 connection = psycopg2.connect(dbname='music_service_10', user='postgres',
                               password='postgres', host='localhost')
 
 c = ControllerPSQL(connection)
+m = ModelPSQL(connection)
 
 # c.get_playlist(9)
 
@@ -39,7 +45,7 @@ c = ControllerPSQL(connection)
 # c.get_artists(artists_filter, pagination_filter)
 # c.create_playlist(playlist)
 
-c.call_interface()
+# c.call_interface()
 # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
 #                not func.startswith('__') and not func.startswith('fill_')]
 # print(method_list)
@@ -58,3 +64,38 @@ c.call_interface()
 # playlist = m.get_playlist(1)
 #
 # v.view_playlist(playlist)
+
+hf = HistoryFilter()
+hf.compositions_ids = 1
+hf.composition_listened_counter = True
+
+hist = m.get_listening_history(hf, [4], PaginationFilter())
+for item in hist:
+    print(item)
+
+d1 = date(2016, 11, 3)
+d2 = date(2020, 10, 30)
+ts = (d2 - d1)/4
+arr = []
+i = 0
+while i < 5:
+    arr.append(d1 + ts*i)
+    i += 1
+
+t1 = 0
+t2 = 810
+
+ax = plt.gca()
+formatter = mdates.DateFormatter("%Y-%m-%d")
+ax.xaxis.set_major_formatter(formatter)
+
+locator = mdates.DayLocator()
+ax.xaxis.set_major_locator(locator)
+
+points = []
+for item in hist:
+    plt.scatter(item['listening_date'], item['times_composition_listened'])
+
+fig = plt.figure()
+plt.plot(arr, [0, 200, 400, 600, 800])
+plt.show()

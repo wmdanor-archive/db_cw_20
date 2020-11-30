@@ -9,15 +9,15 @@ import time
 def to_setlike_list(container):
     if container is None:
         return None
-    elif type(container) is set or frozenset or range:
+    elif type(container) in [set, frozenset, range]:
         return list(container)
-    elif type(container) is list or tuple:
+    elif type(container) in [list, tuple]:
         res = []
         for value in container:
             if value not in res:
                 res.append(value)
         return res
-    elif type(container) is int or str:
+    elif type(container) in [int, str]:
         return [container]
     else:
         raise Exception('Supported types: list, tuple, set, frozenset, range, int, str')
@@ -373,7 +373,7 @@ class ModelPSQL:
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s), '
             'row(%s, %s), %s)',
-            (albums_filter.albums_ids,
+            (to_setlike_list(albums_filter.albums_ids),
              albums_filter.attributes.title, albums_filter.attributes.release_date_exclude_nulls,
              albums_filter.attributes.release_date_from, albums_filter.attributes.release_date_from,
              albums_filter.compositions.toggle,
@@ -413,7 +413,7 @@ class ModelPSQL:
             'SELECT * FROM get_history('
             'row(%s, %s, %s, %s), %s, %s, '
             'row(%s, %s), %s)',
-            (history_filter.users_ids, history_filter.compositions_ids,
+            (to_setlike_list(history_filter.users_ids), to_setlike_list(history_filter.compositions_ids),
              history_filter.listened_from, history_filter.listened_to,
              history_filter.user_listened_counter, history_filter.composition_listened_counter,
              pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
@@ -437,7 +437,8 @@ class ModelPSQL:
             'row(%s, %s, %s, %s, %s), %s, %s, '
             'row(%s, %s), %s)',
             (rating_filter.rated_type,
-             rating_filter.users_ids, rating_filter.rated_ids, rating_filter.satisfied,
+             to_setlike_list(rating_filter.users_ids), to_setlike_list(rating_filter.rated_ids),
+             rating_filter.satisfied,
              rating_filter.rated_from, rating_filter.rated_to,
              rating_filter.rated_rating_counter, rating_filter.user_rating_counter,
              pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
