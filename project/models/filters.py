@@ -396,8 +396,10 @@ class HistoryFilter:
 
 class RatingFilter:
 
-    def __init__(self, rated_ids=None, users_ids=None, satisfied=None, rated_from=None, rated_to=None,
+    def __init__(self, rated_type=1,
+                 rated_ids=None, users_ids=None, satisfied=None, rated_from=None, rated_to=None,
                  rated_rating_counter=None, user_rating_counter=None):
+        self.rated_type = rated_type
         self.rated_ids = rated_ids
         self.users_ids = users_ids
         self.satisfied = satisfied

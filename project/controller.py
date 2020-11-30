@@ -91,11 +91,11 @@ def get_partial_date():
         return None
 
 
-def edit_set(edited, element_type):
+def edit_set(edited: set, element_type: type):
     """
     To add type: add a1 a2 a3 ...\n
     To remove type: rem a1 a2 a3 ...\n
-    :return: edited set
+    :return: set
     """
     command = input()
     if not command:
@@ -124,10 +124,10 @@ def edit_set(edited, element_type):
         raise ValueError("Invalid input")
 
 
-def get_unique_list():
+def get_unique_list(maximum: int):
     """
     Input format: a1 a2 a3 ...\n
-    :return: list()
+    :return: list
     """
     orders = get_str()
     if orders is None:
@@ -136,6 +136,8 @@ def get_unique_list():
     new_arr = []
     for item in orders_arr:
         temp = int(item)
+        if abs(temp) > maximum or temp == 0:
+            raise ValueError("Can not be 0 or abs bigger than " + str(maximum))
         if abs(temp) in new_arr:
             raise ValueError("List values must be unique")
         new_arr.append(temp)
@@ -148,7 +150,9 @@ class ControllerPSQL:
         self.__model = ModelPSQL(connection)
         self.__view = view
 
-    # interface
+    # region interface
+
+    # region entity construction
 
     def construct_album(self):
         self.__view.view_message('Enter title')
@@ -321,6 +325,10 @@ class ControllerPSQL:
             raise ValueError("Variable 'registration_date' can not be None")
 
         return Rating(0, rated_id, user_id, is_satisfied, action_date)
+
+    # endregion
+
+    # region users filter
 
     def edit_users_filter_attributes(self, attributes):
         while True:
@@ -580,6 +588,10 @@ class ControllerPSQL:
             except Exception as err:
                 self.__view.view_exception(err)
 
+    # endregion
+
+    # region compositions filter
+
     def edit_compositions_filter_attributes(self, attributes):
         while True:
             self.__view.view_message(attributes)
@@ -691,7 +703,7 @@ class ControllerPSQL:
             except Exception as err:
                 self.__view.view_exception(err)
 
-    def edit_compositions_filter_rating(self, rating):
+    def edit_entity_filter_rating(self, rating):
         while True:
             self.__view.view_message(rating)
             self.__view.view_message('What to edit')
@@ -818,7 +830,7 @@ class ControllerPSQL:
                 elif res == 3:
                     self.edit_compositions_filter_history(compositions_filter.history)
                 elif res == 4:
-                    self.edit_compositions_filter_rating(compositions_filter.rating)
+                    self.edit_entity_filter_rating(compositions_filter.rating)
                 elif res == 5:
                     self.edit_compositions_filter_collections(compositions_filter.playlists)
                 elif res == 6:
@@ -827,6 +839,10 @@ class ControllerPSQL:
                     raise ValueError('Invalid input')
             except Exception as err:
                 self.__view.view_exception(err)
+
+    # endregion
+
+    # region artists filter
 
     def edit_artists_filter_attributes(self, attributes):
         while True:
@@ -925,7 +941,7 @@ class ControllerPSQL:
                 elif res == 3:
                     self.edit_compositions_filter_history(artists_filter.history)
                 elif res == 4:
-                    self.edit_compositions_filter_rating(artists_filter.rating)
+                    self.edit_entity_filter_rating(artists_filter.rating)
                 elif res == 5:
                     self.edit_compositions_filter_collections(artists_filter.playlists)
                 elif res == 6:
@@ -934,6 +950,370 @@ class ControllerPSQL:
                     raise ValueError('Invalid input')
             except Exception as err:
                 self.__view.view_exception(err)
+
+    # endregion
+
+    # region albums filter
+
+    def edit_collections_filter_compositions(self, compositions: CollectionFilterCompositions):
+        while True:
+            self.__view.view_message(compositions)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            saved = ['toggle', 'compositions_number_from', 'compositions_number_to',
+                     'compositions_list', 'compositions_any']
+            i = 1
+            for item in saved:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if compositions.toggle is None:
+                        compositions.toggle = True
+                    else:
+                        compositions.toggle = not compositions.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter compositions_number_from')
+                    compositions.compositions_number_from = get_int()
+                elif res == 3:
+                    self.__view.view_message('Enter compositions_number_to')
+                    compositions.compositions_number_to = get_int()
+                elif res == 4:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    compositions.compositions_list = edit_set(compositions.compositions_list, int)
+                elif res == 5:
+                    if compositions.compositions_any is None:
+                        compositions.compositions_any = True
+                    else:
+                        compositions.compositions_any = not compositions.compositions_any
+                    self.__view.view_message('Changed')
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    def edit_collections_filter_users(self, users: CollectionFilterUsers):
+        while True:
+            self.__view.view_message(users)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            saved = ['toggle', 'users_number_from', 'users_number_to',
+                     'users_list', 'users_any']
+            i = 1
+            for item in saved:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    if users.toggle is None:
+                        users.toggle = True
+                    else:
+                        users.toggle = not users.toggle
+                    self.__view.view_message('Changed')
+                elif res == 2:
+                    self.__view.view_message('Enter users_number_from')
+                    users.users_number_from = get_int()
+                elif res == 3:
+                    self.__view.view_message('Enter users_number_to')
+                    users.users_number_to = get_int()
+                elif res == 4:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    users.users_list = edit_set(users.users_list, int)
+                elif res == 5:
+                    if users.users_any is None:
+                        users.users_any = True
+                    else:
+                        users.users_any = not users.users_any
+                    self.__view.view_message('Changed')
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    def edit_albums_filter_attributes(self, attributes: AlbumFilter.AlbumFilterAttributes):
+        while True:
+            self.__view.view_message(attributes)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            attrs = ['title', 'release_date_exclude_nulls', 'release_date_from', 'release_date_to']
+            i = 1
+            for item in attrs:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('Enter title')
+                    attributes.title = get_str()
+                elif res == 2:
+                    if attributes.release_date_exclude_nulls is None:
+                        attributes.release_date_exclude_nulls = True
+                    else:
+                        attributes.release_date_exclude_nulls = not attributes.release_date_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 3:
+                    self.__view.view_message('Enter release_date_from')
+                    attributes.release_date_from = get_date()
+                elif res == 4:
+                    self.__view.view_message('Enter release_date_to')
+                    attributes.release_date_to = get_date()
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    def edit_albums_filter(self, albums_filter: AlbumFilter):
+        while True:
+            self.__view.view_message(albums_filter)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            filters = ['albums_ids', 'attributes', 'rating', 'compositions', 'users']
+            i = 1
+            for item in filters:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    albums_filter.artists_ids = edit_set(albums_filter.albums_ids, int)
+                elif res == 2:
+                    self.edit_albums_filter_attributes(albums_filter.attributes)
+                elif res == 3:
+                    self.edit_entity_filter_rating(albums_filter.rating)
+                elif res == 4:
+                    self.edit_collections_filter_compositions(albums_filter.compositions)
+                elif res == 5:
+                    self.edit_collections_filter_users(albums_filter.users)
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    # endregion
+
+    # region playlists filter
+
+    def edit_playlists_filter_attributes(self, attributes: PlaylistFilter.PlaylistFilterAttributes):
+        while True:
+            self.__view.view_message(attributes)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            attrs = ['title', 'creators_ids_exclude_nulls', 'creators_ids', 'privacies']
+            i = 1
+            for item in attrs:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('Enter title')
+                    attributes.title = get_str()
+                elif res == 2:
+                    if attributes.creators_ids_exclude_nulls is None:
+                        attributes.creators_ids_exclude_nulls = True
+                    else:
+                        attributes.creators_ids_exclude_nulls = not attributes.creators_ids_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 3:
+                    self.__view.view_message('To add creator_id: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove creator_id: REM a1 a2 a3 ...')
+                    attributes.types = edit_set(attributes.creators_ids, int)
+                elif res == 4:
+                    self.__view.view_message('To add privacy: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove privacy: REM a1 a2 a3 ...')
+                    attributes.types = edit_set(attributes.privacies, str)
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    def edit_playlists_filter(self, playlists_filter: PlaylistFilter):
+        while True:
+            self.__view.view_message(playlists_filter)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            filters = ['playlists_ids', 'attributes', 'rating', 'compositions', 'users']
+            i = 1
+            for item in filters:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    playlists_filter.artists_ids = edit_set(playlists_filter.playlists_ids, int)
+                elif res == 2:
+                    self.edit_playlists_filter_attributes(playlists_filter.attributes)
+                elif res == 3:
+                    self.edit_entity_filter_rating(playlists_filter.rating)
+                elif res == 4:
+                    self.edit_collections_filter_compositions(playlists_filter.compositions)
+                elif res == 5:
+                    self.edit_collections_filter_users(playlists_filter.users)
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    # endregion
+
+    # region history filter
+
+    def edit_history_filter(self, history_filter: HistoryFilter):
+        while True:
+            self.__view.view_message(history_filter)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            attrs = ['compositions_ids', 'users_ids', 'listened_from', 'listened_to',
+                     'user_listened_counter', 'composition_listened_counter']
+            i = 1
+            for item in attrs:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('To add compositions_id: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove compositions_id: REM a1 a2 a3 ...')
+                    history_filter.compositions_ids = edit_set(history_filter.compositions_ids, int)
+                elif res == 2:
+                    self.__view.view_message('To add user_id: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove user_id: REM a1 a2 a3 ...')
+                    history_filter.users_ids = edit_set(history_filter.users_ids, int)
+                elif res == 3:
+                    self.__view.view_message('Enter listened_from ISO-8601')
+                    history_filter.listened_from = get_date()
+                elif res == 4:
+                    self.__view.view_message('Enter listened_to ISO-8601')
+                    history_filter.listened_to = get_date()
+                elif res == 5:
+                    if history_filter.user_listened_counter is None:
+                        history_filter.user_listened_counter = True
+                    else:
+                        history_filter.user_listened_counter = not history_filter.user_listened_counter
+                    self.__view.view_message('Changed')
+                elif res == 6:
+                    if history_filter.composition_listened_counter is None:
+                        history_filter.composition_listened_counter = True
+                    else:
+                        history_filter.composition_listened_counter = not history_filter.composition_listened_counter
+                    self.__view.view_message('Changed')
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    # endregion
+
+    # region rating filter
+
+    def edit_rating_filter(self, rating_filter: RatingFilter):
+        while True:
+            self.__view.view_message(rating_filter)
+            self.__view.view_message('What to edit')
+            self.__view.view_message('0 - go back')
+            attrs = ['rated_type', 'rated_ids', 'users_ids', 'satisfied', 'rated_from', 'rated_to',
+                     'rated_rating_counter', 'user_rating_counter']
+            i = 1
+            for item in attrs:
+                self.__view.view_message(i, '-', item)
+                i += 1
+
+            try:
+                res = get_int()
+                if res is None:
+                    raise ValueError('You need to enter action')
+                elif res == 0:
+                    break
+                elif res == 1:
+                    self.__view.view_message('Choose rated_type\n1 - compositions\n2 - albums\n'
+                                             '3 - playlists')
+                    new_type = get_int()
+                    if new_type is None:
+                        raise ValueError("Variable 'rated_type' can not be None")
+                    if not 1 <= new_type <= 3:
+                        raise ValueError("Variable 'rated_type' invalid value")
+                    rating_filter.rated_type = new_type
+                elif res == 2:
+                    self.__view.view_message('To add rated_id: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove rated_id: REM a1 a2 a3 ...')
+                    rating_filter.rated_ids = edit_set(rating_filter.rated_ids, int)
+                elif res == 3:
+                    self.__view.view_message('To add compositions_id: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove compositions_id: REM a1 a2 a3 ...')
+                    rating_filter.users_ids = edit_set(rating_filter.users_ids, int)
+                elif res == 4:
+                    self.__view.view_message('Is satisfied?')
+                    rating_filter.satisfied = get_bool()
+                elif res == 5:
+                    self.__view.view_message('Enter rated_from ISO-8601')
+                    rating_filter.rated_from = get_date()
+                elif res == 6:
+                    self.__view.view_message('Enter rated_to ISO-8601')
+                    rating_filter.rated_to = get_date()
+                elif res == 7:
+                    if rating_filter.rated_rating_counter is None:
+                        rating_filter.rated_rating_counter = True
+                    else:
+                        rating_filter.rated_rating_counter = not rating_filter.rated_rating_counter
+                    self.__view.view_message('Changed')
+                elif res == 8:
+                    if rating_filter.user_rating_counter is None:
+                        rating_filter.user_rating_counter = True
+                    else:
+                        rating_filter.user_rating_counter = not rating_filter.user_rating_counter
+                    self.__view.view_message('Changed')
+                else:
+                    raise ValueError('Invalid input')
+            except Exception as err:
+                self.__view.view_exception(err)
+
+    # endregion
+
+    # region pagination filter
 
     def edit_pagination_filter(self, pagination_filter):
         while True:
@@ -961,6 +1341,10 @@ class ControllerPSQL:
                     raise ValueError('Invalid input')
             except Exception as err:
                 self.__view.view_exception(err)
+
+    # endregion
+
+    # region filling menu
 
     def filling_menu(self):
         while True:
@@ -1089,6 +1473,8 @@ class ControllerPSQL:
             except Exception as err:
                 self.__view.view_exception(err)
 
+    # endregion
+
     def call_interface(self):
         users_filter = UserFilter()
         users_order = []
@@ -1096,6 +1482,14 @@ class ControllerPSQL:
         compositions_order = []
         artists_filter = ArtistFilter()
         artists_order = []
+        albums_filter = AlbumFilter()
+        albums_order = []
+        playlists_filter = PlaylistFilter()
+        playlists_order = []
+        history_filter = HistoryFilter()
+        history_order = []
+        rating_filter = RatingFilter()
+        rating_order = []
         pagination_filter = PaginationFilter()
 
         # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
@@ -1202,17 +1596,45 @@ class ControllerPSQL:
                     album_id = get_int()
                     self.get_album(album_id)
                 elif method_id == 16:  # get albums
-                    pass
+                    possible_albums_orders = ['album_id', 'title', 'release_date', 'compositions_number', 'times_rated',
+                                              'average_rating', 'users_saved_number']
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+                        try:
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_albums(albums_filter, albums_order, pagination_filter)
+                            elif res == 2:
+                                self.edit_albums_filter(albums_filter)
+                            elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_albums_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                artists_order = get_unique_list(len(possible_albums_orders))
+                            elif res == 4:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 17:  # get artists
-                    possible_artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened'
+                    possible_artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened',
                                                'times_rated', 'average_rating', 'playlists_belong_number',
                                                'albums_belong_number']
                     while True:
                         self.__view.view_message('Current filters')
-                        self.__view.view_message(artists_filter)
-                        self.__view.view_message('Order by:', artists_order)
-                        self.__view.view_message(pagination_filter)
-                        self.__view.view_message('Choose action')
                         self.__view.view_message('0 - go back')
                         self.__view.view_message('1 - execute')
                         self.__view.view_message('2 - edit filter')
@@ -1235,7 +1657,7 @@ class ControllerPSQL:
                                     self.__view.view_message(i, '-', item)
                                     i += 1
                                 self.__view.view_message('Enter order in format: a1 a2 a3 ...')
-                                artists_order = get_unique_list()
+                                artists_order = get_unique_list(len(possible_artists_orders))
                             elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
@@ -1275,7 +1697,7 @@ class ControllerPSQL:
                                     self.__view.view_message(i, '-', item)
                                     i += 1
                                 self.__view.view_message('Enter order in format: a1 a2 a3 ...')
-                                compositions_order = get_unique_list()
+                                compositions_order = get_unique_list(len(possible_compositions_orders))
                             elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
@@ -1283,21 +1705,117 @@ class ControllerPSQL:
                         except Exception as err:
                             self.__view.view_exception(err)
                 elif method_id == 19:  # get listening history
-                    pass
+                    possible_history_orders = ['record_id', 'user_id', 'composition_id', 'listening_date']
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+                        try:
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_history(history_filter, history_order, pagination_filter)
+                            elif res == 2:
+                                self.edit_history_filter(history_filter)
+                            elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_history_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                artists_order = get_unique_list(len(possible_history_orders))
+                            elif res == 4:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 20:
                     self.__view.view_message('Enter playlist id')
                     playlist_id = get_int()
                     self.get_playlist(playlist_id)
                 elif method_id == 21:  # get playlists
-                    pass
+                    possible_playlists_orders = ['playlist_id', 'title', 'creator_id', 'privacy_id',
+                                                 'compositions_number', 'times_rated', 'average_rating',
+                                                 'users_saved_number']
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+                        try:
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_playlists(playlists_filter, playlists_order, pagination_filter)
+                            elif res == 2:
+                                self.edit_playlists_filter(playlists_filter)
+                            elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_playlists_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                artists_order = get_unique_list(len(possible_playlists_orders))
+                            elif res == 4:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 22:  # get rating
-                    pass
+                    possible_rating_orders = ['rating_id', 'rated_id', 'user_id', 'satisfied', 'rating_date']
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+                        try:
+                            res = get_int()
+                            if res is None:
+                                raise ValueError('You need to enter action')
+                            if res == 0:
+                                break
+                            elif res == 1:
+                                self.get_rating(rating_filter, rating_order, pagination_filter)
+                            elif res == 2:
+                                self.edit_rating_filter(rating_filter)
+                            elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_rating_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                artists_order = get_unique_list(len(possible_rating_orders))
+                            elif res == 4:
+                                self.edit_pagination_filter(pagination_filter)
+                            else:
+                                raise ValueError('Invalid input')
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 23:  # get users
-                    possible_user_orders = ['user_id', 'username', 'registration_date', 'is_active', 'full_name',
-                                            'birth_date', 'gender', 'times_listened', 'times_compositions_rated',
-                                            'compositions_average_rating', 'times_albums_rated',
-                                            'albums_average_rating', 'times_playlists_rate', 'playlists_average_rating',
-                                            'albums_saved_number', 'playlists_saved_number']
+                    possible_users_orders = ['user_id', 'username', 'registration_date', 'is_active', 'full_name',
+                                             'birth_date', 'gender', 'times_listened', 'times_compositions_rated',
+                                             'compositions_average_rating', 'times_albums_rated',
+                                             'albums_average_rating', 'times_playlists_rate',
+                                             'playlists_average_rating',
+                                             'albums_saved_number', 'playlists_saved_number']
                     while True:
                         self.__view.view_message('Current filters')
                         self.__view.view_message(users_filter)
@@ -1323,11 +1841,11 @@ class ControllerPSQL:
                             elif res == 3:
                                 self.__view.view_message('Available orders:')
                                 i = 1
-                                for item in possible_user_orders:
+                                for item in possible_users_orders:
                                     self.__view.view_message(i, '-', item)
                                     i += 1
                                 self.__view.view_message('Enter order in format: a1 a2 a3 ...')
-                                users_order = get_unique_list()
+                                users_order = get_unique_list(len(possible_users_orders))
                             elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
@@ -1432,6 +1950,8 @@ class ControllerPSQL:
             except Exception as err:
                 self.__view.view_exception(err)
 
+    # endregion
+
     def get_users(self, users_filter, orders_list, pagination_filter):
         try:
             result = self.__model.get_users(users_filter, orders_list, pagination_filter)
@@ -1452,6 +1972,38 @@ class ControllerPSQL:
         try:
             result = self.__model.get_artists(artists_filter, orders_list, pagination_filter)
             self.__view.view_entity_list(result, 'Artist')
+            self.__view.view_query_runtime(self.__model.last_query_runtime)
+        except Exception as err:
+            self.__view.view_exception(err)
+
+    def get_albums(self, albums_filter, orders_list, pagination_filter):
+        try:
+            result = self.__model.get_albums(albums_filter, orders_list, pagination_filter)
+            self.__view.view_entity_list(result, 'Album')
+            self.__view.view_query_runtime(self.__model.last_query_runtime)
+        except Exception as err:
+            self.__view.view_exception(err)
+
+    def get_playlists(self, playlists_filter, orders_list, pagination_filter):
+        try:
+            result = self.__model.get_playlists(playlists_filter, orders_list, pagination_filter)
+            self.__view.view_entity_list(result, 'Playlist')
+            self.__view.view_query_runtime(self.__model.last_query_runtime)
+        except Exception as err:
+            self.__view.view_exception(err)
+
+    def get_history(self, history_filter, orders_list, pagination_filter):
+        try:
+            result = self.__model.get_listening_history(history_filter, orders_list, pagination_filter)
+            self.__view.view_entity_list(result, 'History record')
+            self.__view.view_query_runtime(self.__model.last_query_runtime)
+        except Exception as err:
+            self.__view.view_exception(err)
+
+    def get_rating(self, rating_filter, orders_list, pagination_filter):
+        try:
+            result = self.__model.get_rating(rating_filter, orders_list, pagination_filter)
+            self.__view.view_entity_list(result, 'Rating record')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)

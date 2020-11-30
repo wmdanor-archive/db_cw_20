@@ -431,12 +431,12 @@ class ModelPSQL:
             listening_history.append(record)
         return listening_history
 
-    def get_rating(self, rated_type, rating_filter, orders_list, pagination_filter):
+    def get_rating(self, rating_filter, orders_list, pagination_filter):
         self.__cursor.execute(
             'SELECT * FROM get_rating(%s, '
             'row(%s, %s, %s, %s, %s), %s, %s, '
             'row(%s, %s), %s)',
-            (rated_type,
+            (rating_filter.rated_type,
              rating_filter.users_ids, rating_filter.rated_ids, rating_filter.satisfied,
              rating_filter.rated_from, rating_filter.rated_to,
              rating_filter.rated_rating_counter, rating_filter.user_rating_counter,
