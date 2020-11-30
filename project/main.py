@@ -2,7 +2,7 @@ import psycopg2
 
 from model import PaginationFilter
 import view
-# from controller import ControllerPSQL
+from controller import ControllerPSQL
 from model import ModelPSQL
 
 from models.album import Album
@@ -13,7 +13,7 @@ from models.history_record import HistoryRecord
 connection = psycopg2.connect(dbname='music_service_10', user='postgres',
                               password='postgres', host='localhost')
 
-# c = ControllerPSQL(connection)
+c = ControllerPSQL(connection)
 
 # c.get_playlist(9)
 
@@ -39,14 +39,14 @@ connection = psycopg2.connect(dbname='music_service_10', user='postgres',
 # c.get_artists(artists_filter, pagination_filter)
 # c.create_playlist(playlist)
 
-# c.call_interface()
-method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
-               not func.startswith('__') and not func.startswith('fill_')]
-print(method_list)
-i = 1
-for item in method_list:
-    print(i, item)
-    i += 1
+c.call_interface()
+# method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
+#                not func.startswith('__') and not func.startswith('fill_')]
+# print(method_list)
+# i = 1
+# for item in method_list:
+#     print(i, item)
+#     i += 1
 # c.create_user(User(0, 'test 1', 'ph', '2020-11-8', True, gender_id=1))
 # user_model = User(0, 'test 1', 'ph', '2020-11-8', True, gender_id=1)
 # cursor = connection.cursor()

@@ -1091,11 +1091,11 @@ class ControllerPSQL:
 
     def call_interface(self):
         users_filter = UserFilter()
-        users_order = set()
+        users_order = []
         compositions_filter = CompositionFilter()
-        compositions_order = set()
+        compositions_order = []
         artists_filter = ArtistFilter()
-        artists_order = set()
+        artists_order = []
         pagination_filter = PaginationFilter()
 
         # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
@@ -1207,17 +1207,18 @@ class ControllerPSQL:
                     possible_artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened'
                                                'times_rated', 'average_rating', 'playlists_belong_number',
                                                'albums_belong_number']
-                    try:
-                        while True:
-                            self.__view.view_message('Current filters')
-                            self.__view.view_message(artists_filter)
-                            self.__view.view_message('Order by:', artists_order)
-                            self.__view.view_message(pagination_filter)
-                            self.__view.view_message('Choose action')
-                            self.__view.view_message('0 - go back')
-                            self.__view.view_message('1 - execute')
-                            self.__view.view_message('2 - edit filter')
-                            self.__view.view_message('3 - change pagination')
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message(artists_filter)
+                        self.__view.view_message('Order by:', artists_order)
+                        self.__view.view_message(pagination_filter)
+                        self.__view.view_message('Choose action')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+                        try:
                             res = get_int()
                             if res is None:
                                 raise ValueError('You need to enter action')
@@ -1234,28 +1235,30 @@ class ControllerPSQL:
                                     self.__view.view_message(i, '-', item)
                                     i += 1
                                 self.__view.view_message('Enter order in format: a1 a2 a3 ...')
-                                users_order = get_unique_list()
+                                artists_order = get_unique_list()
                             elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
                                 raise ValueError('Invalid input')
-                    except Exception as err:
-                        self.__view.view_exception(err)
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 18:  # get compositions
                     possible_compositions_orders = ['composition_id', 'title', 'artist_id', 'duration', 'release_date',
                                                     'times_listened', 'times_rated', 'average_rating',
                                                     'playlists_belong_number', 'albums_belong_number']
-                    try:
-                        while True:
-                            self.__view.view_message('Current filters')
-                            self.__view.view_message(compositions_filter)
-                            self.__view.view_message('Order by:', compositions_order)
-                            self.__view.view_message(pagination_filter)
-                            self.__view.view_message('Choose action')
-                            self.__view.view_message('0 - go back')
-                            self.__view.view_message('1 - execute')
-                            self.__view.view_message('2 - edit filter')
-                            self.__view.view_message('3 - change pagination')
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message(compositions_filter)
+                        self.__view.view_message('Order by:', compositions_order)
+                        self.__view.view_message(pagination_filter)
+                        self.__view.view_message('Choose action')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+
+                        try:
                             res = get_int()
                             if res is None:
                                 raise ValueError('You need to enter action')
@@ -1272,13 +1275,13 @@ class ControllerPSQL:
                                     self.__view.view_message(i, '-', item)
                                     i += 1
                                 self.__view.view_message('Enter order in format: a1 a2 a3 ...')
-                                users_order = get_unique_list()
+                                compositions_order = get_unique_list()
                             elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
                                 raise ValueError('Invalid input')
-                    except Exception as err:
-                        self.__view.view_exception(err)
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 19:  # get listening history
                     pass
                 elif method_id == 20:
@@ -1295,18 +1298,19 @@ class ControllerPSQL:
                                             'compositions_average_rating', 'times_albums_rated',
                                             'albums_average_rating', 'times_playlists_rate', 'playlists_average_rating',
                                             'albums_saved_number', 'playlists_saved_number']
-                    try:
-                        while True:
-                            self.__view.view_message('Current filters')
-                            self.__view.view_message(users_filter)
-                            self.__view.view_message('Order by:', users_order)
-                            self.__view.view_message(pagination_filter)
-                            self.__view.view_message('Choose action')
-                            self.__view.view_message('0 - go back')
-                            self.__view.view_message('1 - execute')
-                            self.__view.view_message('2 - edit filter')
-                            self.__view.view_message('3 - change order by')
-                            self.__view.view_message('4 - change pagination')
+                    while True:
+                        self.__view.view_message('Current filters')
+                        self.__view.view_message(users_filter)
+                        self.__view.view_message('Order by:', users_order)
+                        self.__view.view_message(pagination_filter)
+                        self.__view.view_message('Choose action')
+                        self.__view.view_message('0 - go back')
+                        self.__view.view_message('1 - execute')
+                        self.__view.view_message('2 - edit filter')
+                        self.__view.view_message('3 - change order by')
+                        self.__view.view_message('4 - change pagination')
+
+                        try:
                             res = get_int()
                             if res is None:
                                 raise ValueError('You need to enter action')
@@ -1328,8 +1332,8 @@ class ControllerPSQL:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
                                 raise ValueError('Invalid input')
-                    except Exception as err:
-                        self.__view.view_exception(err)
+                        except Exception as err:
+                            self.__view.view_exception(err)
                 elif method_id == 24:
                     record = self.construct_history_record()
                     self.__view.view_message('Are you sure?')
