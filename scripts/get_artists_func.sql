@@ -185,7 +185,23 @@ orders_types constant text array := array[
 order_type integer;
 types_ids integer array := null;
 type_temp varchar(32);
+genders_ids integer array := null;
+gender_temp varchar(32);
+
+genders_search_mode text := ' OR artists.gender_id IS NULL';
+begin_date_mode text := ' OR begin_date_year IS NULL';
+end_date_mode text := ' OR end_date_year IS NULL';
 begin
+
+if attribute_filter.gender_exclude_nulls then
+genders_search_mode := ' AND artists.gender_id IS NOT NULL';
+end if;
+if attribute_filter.begin_date_exclude_nulls then
+begin_date_mode := ' AND begin_date_year IS NOT NULL';
+end if;
+if attribute_filter.end_date_exclude_nulls then
+end_date_mode := ' AND end_date_year IS NOT NULL';
+end if;
 
 if attribute_filter.begin_date_from is not null or attribute_filter.begin_date_to is not null or 
 attribute_filter.end_date_from is not null or attribute_filter.end_date_to is not null or 
@@ -258,10 +274,15 @@ return query execute
 	WHERE
 	COALESCE(artists.artist_id = ANY($12), true) AND
 	'|| ftq_where ||' AND
-	COALESCE(artists.type_id = ANY($2), true)
+	COALESCE(artists.type_id = ANY($2), true) AND
+	COALESCE(artists.gender_id = ANY($3)'|| genders_search_mode ||', true) AND
+	COALESCE(compare_dates(begin_date_year, begin_date_month, begin_date_day, $4) <= 0'|| begin_date_mode ||', true) AND
+	COALESCE(compare_dates(begin_date_year, begin_date_month, begin_date_day, $5) >= 0'|| begin_date_mode ||', true) AND
+	COALESCE(compare_dates(end_date_year, end_date_month, end_date_day, $6) <= 0'|| end_date_mode ||', true) AND
+	COALESCE(compare_dates(end_date_year, end_date_month, end_date_day, $7) >= 0'|| end_date_mode ||', true)
 	ORDER BY '|| ftq_rank || orders_text ||'
 	OFFSET $13 LIMIT $14'
-	using attribute_filter.name_comment, types_ids, attribute_filter.genders,
+	using attribute_filter.name_comment, types_ids, genders_ids,
 	attribute_filter.begin_date_from, attribute_filter.begin_date_to,
 	attribute_filter.end_date_from, attribute_filter.end_date_to,
 	history_filters, rating_filter, playlists_filter, albums_filter, artists_ids,
@@ -279,7 +300,7 @@ $$ language plpgsql called on null input;
 */
 
 select * from get_artists( null,
-	row(null, null, null, null, null, null, null, true),
+	row(null, null, false, null, false, null, null, false, null, null, true),
 	true,
 	row(null, null, null, null, null, null),
 	true,
