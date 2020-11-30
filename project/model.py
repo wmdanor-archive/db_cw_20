@@ -167,7 +167,7 @@ class ModelPSQL:
              users_filter.saved_albums.toggle,
              users_filter.saved_albums.saved_number_from, users_filter.saved_albums.saved_number_to,
              to_setlike_list(users_filter.saved_albums.saved_ids_list), users_filter.saved_albums.saved_ids_any,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         self.last_query_runtime = time.time() - timestamp
         users = []
         for row in self.__cursor:
@@ -234,7 +234,7 @@ class ModelPSQL:
              compositions_filter.albums.number_belongs_from, compositions_filter.albums.number_belongs_to,
              to_setlike_list(compositions_filter.albums.collections_list),
              compositions_filter.albums.collections_any,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         self.last_query_runtime = time.time() - timestamp
         compositions = []
         for row in self.__cursor:
@@ -264,7 +264,7 @@ class ModelPSQL:
         timestamp = time.time()
         self.__cursor.execute(
             'SELECT * FROM get_artists(%s,'
-            'row(%s, %s, %s, %s, %s, %s, %s, %s),'
+            'row(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s),'
             '%s, row(%s, %s, %s, %s, %s, %s),'
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s),'
@@ -272,8 +272,11 @@ class ModelPSQL:
             'row(%s, %s), %s)',
             (to_setlike_list(artists_filter.artists_ids),
              artists_filter.attributes.name_comment,
-             to_setlike_list(artists_filter.attributes.types), to_setlike_list(artists_filter.attributes.genders),
+             to_setlike_list(artists_filter.attributes.types),
+             artists_filter.attributes.gender_exclude_nulls, to_setlike_list(artists_filter.attributes.genders),
+             artists_filter.attributes.begin_date_exclude_nulls,
              artists_filter.attributes.begin_date_from, artists_filter.attributes.begin_date_to,
+             artists_filter.attributes.end_date_exclude_nulls,
              artists_filter.attributes.end_date_from, artists_filter.attributes.end_date_to,
              artists_filter.attributes.search_comments,
              artists_filter.history.toggle,
@@ -291,7 +294,7 @@ class ModelPSQL:
              artists_filter.albums.toggle,
              artists_filter.albums.number_belongs_from, artists_filter.albums.number_belongs_to,
              to_setlike_list(artists_filter.albums.collections_list), artists_filter.albums.collections_any,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         self.last_query_runtime = time.time() - timestamp
         artists = []
         for row in self.__cursor:
@@ -344,7 +347,7 @@ class ModelPSQL:
              playlists_filter.users.toggle,
              playlists_filter.users.users_number_from, playlists_filter.users.users_number_to,
              to_setlike_list(playlists_filter.users.users_list), playlists_filter.users.users_any,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         playlists = []
         for row in self.__cursor:
             playlist = dict(row)
@@ -386,7 +389,7 @@ class ModelPSQL:
              albums_filter.users.toggle,
              albums_filter.users.users_number_from, albums_filter.users.users_number_to,
              to_setlike_list(albums_filter.users.users_list), albums_filter.users.users_any,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         albums = []
         for row in self.__cursor:
             album = dict()
@@ -413,7 +416,7 @@ class ModelPSQL:
             (history_filter.users_ids, history_filter.compositions_ids,
              history_filter.listened_from, history_filter.listened_to,
              history_filter.user_listened_counter, history_filter.composition_listened_counter,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         listening_history = []
         for row in self.__cursor:
             record = dict()
@@ -437,7 +440,7 @@ class ModelPSQL:
              rating_filter.users_ids, rating_filter.rated_ids, rating_filter.satisfied,
              rating_filter.rated_from, rating_filter.rated_to,
              rating_filter.rated_rating_counter, rating_filter.user_rating_counter,
-             pagination_filter.page_size, pagination_filter.offset, orders_list))
+             pagination_filter.page_size, pagination_filter.offset, to_setlike_list(orders_list)))
         rating = []
         for row in self.__cursor:
             record = dict()

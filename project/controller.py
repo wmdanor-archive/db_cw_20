@@ -91,7 +91,7 @@ def get_partial_date():
         return None
 
 
-def edit_set(edited, element_type=str):
+def edit_set(edited, element_type):
     """
     To add type: add a1 a2 a3 ...\n
     To remove type: rem a1 a2 a3 ...\n
@@ -124,6 +124,24 @@ def edit_set(edited, element_type=str):
         raise ValueError("Invalid input")
 
 
+def get_unique_list():
+    """
+    Input format: a1 a2 a3 ...\n
+    :return: list()
+    """
+    orders = get_str()
+    if orders is None:
+        return None
+    orders_arr = orders.split()
+    new_arr = []
+    for item in orders_arr:
+        temp = int(item)
+        if abs(temp) in new_arr:
+            raise ValueError("List values must be unique")
+        new_arr.append(temp)
+    return new_arr
+
+
 class ControllerPSQL:
 
     def __init__(self, connection):
@@ -146,6 +164,7 @@ class ControllerPSQL:
         name = get_str()
         if name is None:
             raise ValueError("Variable 'name' can not be None")
+
         self.__view.view_message('Choose type')
         types = ['person', 'group', 'orchestra', 'choir', 'character', 'other']
         i = 1
@@ -156,7 +175,27 @@ class ControllerPSQL:
         if type_id is None or not 1 <= type_id <= 6:
             raise ValueError("Variable 'type_id' invalid input")
 
-        return Artist(0, name, type_id)
+        self.__view.view_message('Choose gender')
+        genders = ['male', 'female', 'other']
+        i = 1
+        for item in genders:
+            self.__view.view_message(i, '-', item)
+            i += 1
+        gender_id = get_int()
+        if gender_id is not None and not 1 <= gender_id <= 3:
+            raise ValueError("Variable 'gender_id' invalid input")
+
+        self.__view.view_message('Enter begin_date in format YYYY-MM-DD, for None field input 0')
+        begin_date = get_partial_date()
+
+        self.__view.view_message('Enter end_date in format YYYY-MM-DD, for None field input 0')
+        end_date = get_partial_date()
+
+        self.__view.view_message('Enter comment')
+        comment = get_str()
+
+        return Artist(0, name, type_id, gender_id, comment, begin_date[0], begin_date[1], begin_date[2],
+                      end_date[0], end_date[1], end_date[2])
 
     def construct_composition(self):
         self.__view.view_message('Enter title')
@@ -321,7 +360,7 @@ class ControllerPSQL:
                     attributes.birth_to = get_date()
                 elif res == 7:
                     self.__view.view_message('To add type: ADD a1 a2 a3 ...\nTo remove type: REM a1 a2 a3 ...')
-                    attributes.genders = edit_set(attributes.genders)
+                    attributes.genders = edit_set(attributes.genders, str)
                 elif res == 8:
                     self.__view.view_message('Is active?')
                     attributes.is_active = get_bool()
@@ -794,7 +833,9 @@ class ControllerPSQL:
             self.__view.view_message(attributes)
             self.__view.view_message('What to edit')
             self.__view.view_message('0 - go back')
-            attrs = ['name_comment', 'types', 'search_comments']
+            attrs = ['name_comment', 'types', 'gender_exclude_nulls', 'genders', 'begin_date_exclude_nulls',
+                     'begin_date_from', 'begin_date_to', 'end_date_exclude_nulls', 'end_date_from', 'end_date_to',
+                     'search_comments']
             i = 1
             for item in attrs:
                 self.__view.view_message(i, '-', item)
@@ -812,8 +853,42 @@ class ControllerPSQL:
                 elif res == 2:
                     self.__view.view_message('To add type: ADD a1 a2 a3 ...')
                     self.__view.view_message('To remove type: REM a1 a2 a3 ...')
-                    attributes.types = edit_set(attributes.types)
+                    attributes.types = edit_set(attributes.types, str)
                 elif res == 3:
+                    if attributes.gender_exclude_nulls is None:
+                        attributes.gender_exclude_nulls = True
+                    else:
+                        attributes.gender_exclude_nulls = not attributes.gender_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 4:
+                    self.__view.view_message('To add type: ADD a1 a2 a3 ...')
+                    self.__view.view_message('To remove type: REM a1 a2 a3 ...')
+                    attributes.types = edit_set(attributes.genders, str)
+                elif res == 5:
+                    if attributes.begin_date_exclude_nulls is None:
+                        attributes.begin_date_exclude_nulls = True
+                    else:
+                        attributes.begin_date_exclude_nulls = not attributes.begin_date_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 6:
+                    self.__view.view_message('Enter begin_date_from')
+                    attributes.begin_date_from = get_date()
+                elif res == 7:
+                    self.__view.view_message('Enter begin_date_to')
+                    attributes.begin_date_to = get_date()
+                elif res == 8:
+                    if attributes.end_date_exclude_nulls is None:
+                        attributes.end_date_exclude_nulls = True
+                    else:
+                        attributes.end_date_exclude_nulls = not attributes.end_date_exclude_nulls
+                    self.__view.view_message('Changed')
+                elif res == 9:
+                    self.__view.view_message('Enter end_date_from')
+                    attributes.end_date_from = get_date()
+                elif res == 10:
+                    self.__view.view_message('Enter end_date_to')
+                    attributes.end_date_to = get_date()
+                elif res == 11:
                     if attributes.search_comments is None:
                         attributes.search_comments = True
                     else:
@@ -1016,8 +1091,11 @@ class ControllerPSQL:
 
     def call_interface(self):
         users_filter = UserFilter()
+        users_order = set()
         compositions_filter = CompositionFilter()
+        compositions_order = set()
         artists_filter = ArtistFilter()
+        artists_order = set()
         pagination_filter = PaginationFilter()
 
         # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
@@ -1126,10 +1204,14 @@ class ControllerPSQL:
                 elif method_id == 16:  # get albums
                     pass
                 elif method_id == 17:  # get artists
+                    possible_artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened'
+                                               'times_rated', 'average_rating', 'playlists_belong_number',
+                                               'albums_belong_number']
                     try:
                         while True:
                             self.__view.view_message('Current filters')
                             self.__view.view_message(artists_filter)
+                            self.__view.view_message('Order by:', artists_order)
                             self.__view.view_message(pagination_filter)
                             self.__view.view_message('Choose action')
                             self.__view.view_message('0 - go back')
@@ -1142,20 +1224,32 @@ class ControllerPSQL:
                             if res == 0:
                                 break
                             elif res == 1:
-                                self.get_artists(artists_filter, pagination_filter)
+                                self.get_artists(artists_filter, artists_order, pagination_filter)
                             elif res == 2:
                                 self.edit_artists_filter(artists_filter)
                             elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_artists_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                users_order = get_unique_list()
+                            elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
                                 raise ValueError('Invalid input')
                     except Exception as err:
                         self.__view.view_exception(err)
                 elif method_id == 18:  # get compositions
+                    possible_compositions_orders = ['composition_id', 'title', 'artist_id', 'duration', 'release_date',
+                                                    'times_listened', 'times_rated', 'average_rating',
+                                                    'playlists_belong_number', 'albums_belong_number']
                     try:
                         while True:
                             self.__view.view_message('Current filters')
                             self.__view.view_message(compositions_filter)
+                            self.__view.view_message('Order by:', compositions_order)
                             self.__view.view_message(pagination_filter)
                             self.__view.view_message('Choose action')
                             self.__view.view_message('0 - go back')
@@ -1168,10 +1262,18 @@ class ControllerPSQL:
                             if res == 0:
                                 break
                             elif res == 1:
-                                self.get_compositions(compositions_filter, pagination_filter)
+                                self.get_compositions(compositions_filter, compositions_order, pagination_filter)
                             elif res == 2:
                                 self.edit_compositions_filter(compositions_filter)
                             elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_compositions_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                users_order = get_unique_list()
+                            elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
                                 raise ValueError('Invalid input')
@@ -1188,26 +1290,41 @@ class ControllerPSQL:
                 elif method_id == 22:  # get rating
                     pass
                 elif method_id == 23:  # get users
+                    possible_user_orders = ['user_id', 'username', 'registration_date', 'is_active', 'full_name',
+                                            'birth_date', 'gender', 'times_listened', 'times_compositions_rated',
+                                            'compositions_average_rating', 'times_albums_rated',
+                                            'albums_average_rating', 'times_playlists_rate', 'playlists_average_rating',
+                                            'albums_saved_number', 'playlists_saved_number']
                     try:
                         while True:
                             self.__view.view_message('Current filters')
                             self.__view.view_message(users_filter)
+                            self.__view.view_message('Order by:', users_order)
                             self.__view.view_message(pagination_filter)
                             self.__view.view_message('Choose action')
                             self.__view.view_message('0 - go back')
                             self.__view.view_message('1 - execute')
                             self.__view.view_message('2 - edit filter')
-                            self.__view.view_message('3 - change pagination')
+                            self.__view.view_message('3 - change order by')
+                            self.__view.view_message('4 - change pagination')
                             res = get_int()
                             if res is None:
                                 raise ValueError('You need to enter action')
                             if res == 0:
                                 break
                             elif res == 1:
-                                self.get_users(users_filter, pagination_filter)
+                                self.get_users(users_filter, users_order, pagination_filter)
                             elif res == 2:
                                 self.edit_users_filter(users_filter)
                             elif res == 3:
+                                self.__view.view_message('Available orders:')
+                                i = 1
+                                for item in possible_user_orders:
+                                    self.__view.view_message(i, '-', item)
+                                    i += 1
+                                self.__view.view_message('Enter order in format: a1 a2 a3 ...')
+                                users_order = get_unique_list()
+                            elif res == 4:
                                 self.edit_pagination_filter(pagination_filter)
                             else:
                                 raise ValueError('Invalid input')
@@ -1311,25 +1428,25 @@ class ControllerPSQL:
             except Exception as err:
                 self.__view.view_exception(err)
 
-    def get_users(self, users_filter, pagination_filter):
+    def get_users(self, users_filter, orders_list, pagination_filter):
         try:
-            result = self.__model.get_users(users_filter, pagination_filter)
+            result = self.__model.get_users(users_filter, orders_list, pagination_filter)
             self.__view.view_entity_list(result, 'User')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)
 
-    def get_compositions(self, compositions_filter, pagination_filter):
+    def get_compositions(self, compositions_filter, orders_list, pagination_filter):
         try:
-            result = self.__model.get_compositions(compositions_filter, pagination_filter)
+            result = self.__model.get_compositions(compositions_filter, orders_list, pagination_filter)
             self.__view.view_entity_list(result, 'Composition')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)
 
-    def get_artists(self, artists_filter, pagination_filter):
+    def get_artists(self, artists_filter, orders_list, pagination_filter):
         try:
-            result = self.__model.get_artists(artists_filter, pagination_filter)
+            result = self.__model.get_artists(artists_filter, orders_list, pagination_filter)
             self.__view.view_entity_list(result, 'Artist')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
@@ -1379,22 +1496,6 @@ class ControllerPSQL:
         except Exception as err:
             self.__view.view_exception(err)
 
-    def get_user_playlists(self, user_id):
-        try:
-            result = self.__model.get_user_playlists(user_id)
-            self.__view.view_entity_list(result, 'Playlist')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
-    def get_user_created_playlists(self, user_id):
-        try:
-            result = self.__model.get_user_created_playlists(user_id)
-            self.__view.view_entity_list(result, 'Playlist')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
     def add_user_album(self, album_id, user_id):
         try:
             result = self.__model.add_user_album(album_id, user_id)
@@ -1407,22 +1508,6 @@ class ControllerPSQL:
         try:
             result = self.__model.remove_user_album(album_id, user_id)
             self.__view.view_boolean_result(result)
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
-    def get_user_albums(self, user_id):
-        try:
-            result = self.__model.get_user_albums(user_id)
-            self.__view.view_entity_list(result, 'Album')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
-    def get_user_listening_history(self, user_id):
-        try:
-            result = self.__model.get_user_listening_history(user_id)
-            self.__view.view_entity_list(result, 'History record')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)
@@ -1471,14 +1556,6 @@ class ControllerPSQL:
         except Exception as err:
             self.__view.view_exception(err)
 
-    def get_composition_listening_history(self, composition_id):
-        try:
-            result = self.__model.get_composition_listening_history(composition_id)
-            self.__view.view_entity_list(result, 'History record')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
     def rate_composition(self, rating_model):
         try:
             result = self.__model.rate_composition(rating_model)
@@ -1491,14 +1568,6 @@ class ControllerPSQL:
         try:
             result = self.__model.unrate_composition(composition_id, user_id)
             self.__view.view_entity_list(result, 'Composition rating record', 'Deleted')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
-    def get_composition_rating(self, composition_id):
-        try:
-            result = self.__model.get_composition_rating(composition_id)
-            self.__view.view_entity_list(result, 'Composition rating record')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)
@@ -1531,13 +1600,7 @@ class ControllerPSQL:
 
     # advanced artist operations
 
-    def get_artist_rating(self, artist_id):
-        try:
-            result = self.__model.get_artist_rating(artist_id)
-            self.__view.view_entity_list(result, 'Artist rating record')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
+    # None?
 
     # standard playlist operations
 
@@ -1607,14 +1670,6 @@ class ControllerPSQL:
         except Exception as err:
             self.__view.view_exception(err)
 
-    def get_playlist_rating(self, playlist_id):
-        try:
-            result = self.__model.get_playlist_rating(playlist_id)
-            self.__view.view_entity_list(result, 'Playlist rating record')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
     # standard album operations
 
     def create_album(self, album_model):
@@ -1679,14 +1734,6 @@ class ControllerPSQL:
         try:
             result = self.__model.unrate_album(album_id, user_id)
             self.__view.view_entity_list(result, 'Album rating record', 'Deleted')
-            self.__view.view_query_runtime(self.__model.last_query_runtime)
-        except Exception as err:
-            self.__view.view_exception(err)
-
-    def get_album_rating(self, album_id):
-        try:
-            result = self.__model.get_album_rating(album_id)
-            self.__view.view_entity_list(result, 'Album rating record')
             self.__view.view_query_runtime(self.__model.last_query_runtime)
         except Exception as err:
             self.__view.view_exception(err)

@@ -221,19 +221,26 @@ class ArtistFilter:
 
     class ArtistFilterAttributes:
 
-        def __init__(self, name_comment=None, types=None, genders=None, begin_date_from=None, begin_date_to=None,
-                     end_date_from=None, end_date_to=None, search_comments=None, ):
+        def __init__(self, name_comment=None, types=None, gender_exclude_nulls=None, genders=None,
+                     begin_date_exclude_nulls=None, begin_date_from=None, begin_date_to=None,
+                     end_date_exclude_nulls=None, end_date_from=None, end_date_to=None, search_comments=None, ):
             self.name_comment = name_comment
             self.types = types
+            self.gender_exclude_nulls = gender_exclude_nulls
             self.genders = genders
+            self.begin_date_exclude_nulls = begin_date_exclude_nulls
             self.begin_date_from = begin_date_from
             self.begin_date_to = begin_date_to
+            self.end_date_exclude_nulls = end_date_exclude_nulls
             self.end_date_from = end_date_from
             self.end_date_to = end_date_to
             self.search_comments = search_comments
 
         def __str__(self):
             return 'name_comment: ' + to_str(self.name_comment) + '\ntypes: ' + to_str(self.types) +\
+                '\ngenders: ' + to_str(self.genders) + '\nbegin_date_from: ' + to_str(self.begin_date_from) +\
+                ' | begin_date_to: ' + to_str(self.begin_date_to) + '\nend_date_from: ' + to_str(self.end_date_from) +\
+                ' | end_date_to: ' + to_str(self.end_date_to) +\
                 '\nsearch_comments:' + to_str(self.search_comments)
 
     def __init__(self, artists_ids=None,
