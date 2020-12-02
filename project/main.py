@@ -4,6 +4,7 @@ from model import PaginationFilter
 from datetime import date
 from controller import ControllerPSQL
 from model import ModelPSQL
+from view import ConsoleView
 
 from models.album import Album
 from models.rating import Rating
@@ -16,10 +17,13 @@ import matplotlib.dates as mdates
 
 
 connection = psycopg2.connect(dbname='music_service_10', user='postgres',
-                              password='postgres', host='localhost')
+                              password='1', host='localhost')
 
 c = ControllerPSQL(connection)
 m = ModelPSQL(connection)
+v = ConsoleView(connection)
+v.call_interface()
+exit(0)
 
 # c.get_playlist(9)
 

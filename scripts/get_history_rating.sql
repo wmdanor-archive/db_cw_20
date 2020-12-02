@@ -112,14 +112,14 @@ returns table(
 	satisfied boolean,
 	rating_date date,
 	times_rated_rated bigint,
-	avg_rated_rating numeric,
+	avg_rated_rating real,
 	times_user_rated bigint,
-	avg_user_rating numeric
+	avg_user_rating real
 )
 as $$
 declare
-window_query_1 text := 'null::bigint, null::numeric';
-window_query_2 text := 'null::bigint, null::numeric';
+window_query_1 text := 'null::bigint, null::real';
+window_query_2 text := 'null::bigint, null::real';
 orders_text text := '';
 orders_types text array := array[
     'rating_id',
@@ -149,11 +149,11 @@ raise notice '%', orders_types;
 
 if rated_rating_counter then
 	window_query_1 := 'row_number() over (partition by '|| rated_id_name ||' order by rating_date asc), ' ||
-	'(avg(satisfied::integer) over (partition by '|| rated_id_name ||' order by rating_date asc))*10';
+	'round((avg(satisfied::integer) over (partition by '|| rated_id_name ||' order by rating_date asc))*10, 2)::real';
 end if;
 if user_rating_counter then
 	window_query_2 := 'row_number() over (partition by user_id order by rating_date asc), ' ||
-	'(avg(satisfied::integer) over (partition by user_id order by rating_date asc))*10';
+	'round((avg(satisfied::integer) over (partition by user_id order by rating_date asc))*10, 2)::real';
 end if;
 
 if array_length(orders, 1) = 0 then
