@@ -1457,7 +1457,7 @@ class ConsoleView:
 
         # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
         #                not func.startswith('__') and not func.startswith('fill_')]
-        method_list = ['exit', 'filling menu',
+        method_list = ['graph analyis menu', 'exit', 'filling menu',
                        'add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
                        'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
                        'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
@@ -1515,7 +1515,7 @@ class ConsoleView:
 
         while True:
             print('Choose method')
-            view_numerated_array(method_list, -1)
+            view_numerated_array(method_list, -2)
 
             try:
                 method_id = get_int()
