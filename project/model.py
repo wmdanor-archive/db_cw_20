@@ -329,7 +329,7 @@ class ModelPSQL:
             '%s, row(%s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s, %s, %s, %s, %s), '
             '%s, row(%s, %s, %s, %s), '
-            'row(%s, %s), %s',
+            'row(%s, %s), %s)',
             (to_setlike_list(playlists_filter.playlists_ids),
              playlists_filter.attributes.title, playlists_filter.attributes.creators_ids_exclude_nulls,
              to_setlike_list(playlists_filter.attributes.creators_ids),

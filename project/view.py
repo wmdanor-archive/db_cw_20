@@ -13,8 +13,10 @@ from models.playlist import Playlist
 from models.rating import Rating
 from models.user import User
 
+import matplotlib.pyplot as plt
 
-def getters_interface(getter_func, filters, pagination_filter, possible_orders, entity):
+
+def getters_interface(getter_func, filters, pagination_filter, possible_orders):
     orders = [1]
     while True:
         print('Current filters')
@@ -31,7 +33,7 @@ def getters_interface(getter_func, filters, pagination_filter, possible_orders, 
             if res == 0:
                 break
             elif res == 1:
-                view_entity_list(getter_func(filters, orders, pagination_filter), entity)
+                print(getter_func(filters, orders, pagination_filter))
             elif res == 2:
                 edit_entity_filters(filters)
             elif res == 3:
@@ -195,7 +197,7 @@ def edit_history_filter(history_filter: HistoryFilter):
 
 # endregion
 
-# region edit rating filter
+# region rating filter
 
 
 def edit_rating_filter(rating_filter: RatingFilter):
@@ -1191,52 +1193,6 @@ def get_unique_list(maximum: int, target=None):
 # region views
 
 
-def view_boolean_result(result):
-    if result:
-        print('Success')
-    else:
-        print('Failure')
-
-
-def view_dict(dictionary, level=0):
-    print('\t' * level, end='')
-    length = len(dictionary)
-    i = 1
-    for key, value in dictionary.items():
-        if type(value) is list:
-            print('')
-            view_entity_list(value, key, '', level)
-        else:
-            print(key, ': ', value, ' | ' if i != length else '', sep='', end='')
-        i += 1
-    print('')
-
-
-def view_entity_list(container, entity, action='Found', level=0):
-    print('\t' * level, end='')
-    if container is None and action == 'Found':
-        print('Not found')
-        return
-    if container is None:
-        print(entity, 's is None', sep='')
-        return
-
-    action_formatted = '' if len(action) == 0 else action + ' '
-    if type(container) is not list:
-        print(action_formatted, entity, ':', sep='')
-        view_dict(container, level + 1)
-        return
-
-    if len(container) == 1:
-        print(action_formatted, entity, ':', sep='')
-        view_dict(container[0], level + 1)
-        return
-
-    print(action_formatted, entity, 's:', sep='')
-    for item in container:
-        view_dict(item, level + 1)
-
-
 def view_numerated_array(array: list, start_from=0):
     for item in array:
         print(start_from, '-', item)
@@ -1244,6 +1200,85 @@ def view_numerated_array(array: list, start_from=0):
 
 
 # endregion
+
+
+def visualize_entities_rating(data, filename):
+    x = list(range(1, len(data) + 1))
+    rating = []
+    label = []
+    count = []
+
+    for item in data:
+        label.append(item['name'])
+        rating.append(item['avg_rating'])
+        count.append(item['times_rated'])
+
+    fig, ax = plt.subplots()
+
+    bar_plot = plt.bar(x, rating)
+    plt.xticks(x, label, rotation='vertical')
+
+    for idx, rect in enumerate(bar_plot):
+        height = rect.get_height()
+        ax.text(rect.get_x() + rect.get_width() / 2., 0.5 * height,
+                count[idx],
+                ha='center', va='bottom', rotation=90)
+
+    plt.ylim(0, 10)
+    plt.title('Top rated')
+    plt.savefig('./matplotlib_files/' + filename + '.png', bbox_inches='tight')
+
+
+def visualize_entities_listening(data, filename):
+    x = list(range(1, len(data) + 1))
+    listened = []
+    label = []
+
+    for item in data:
+        label.append(item['name'])
+        listened.append(item['times_listened'])
+
+    fig, ax = plt.subplots()
+
+    bar_plot = plt.bar(x, listened)
+    plt.xticks(x, label, rotation='vertical')
+
+    plt.title('Top listened')
+    plt.savefig('./matplotlib_files/' + filename + '.png', bbox_inches='tight')
+
+
+def visualize_listening_history(data, filename):
+    x_arr = []
+    y_arr = []
+
+    s = len(data)
+    dt = max(1, int(s / 99))
+    for i in range(0, min(s, 100)):
+        x_arr.append(data[i * dt]['listening_date'])
+        y_arr.append(data[i * dt]['times_composition_listened'])
+
+    fig = plt.figure()
+    plt.plot(x_arr, y_arr)
+    plt.xticks(rotation='vertical')
+    plt.title('Listening chart')
+    plt.savefig('./matplotlib_files/' + filename + '.png', bbox_inches='tight')
+
+
+def visualize_rating_history(data, filename):
+    x_arr = []
+    y_arr = []
+
+    s = len(data)
+    dt = max(1, int(s / 99))
+    for i in range(0, min(s, 100)):
+        x_arr.append(data[i * dt]['rating_date'])
+        y_arr.append(data[i * dt]['avg_rating'])
+
+    fig = plt.figure()
+    plt.plot(x_arr, y_arr)
+    plt.xticks(rotation='vertical')
+    plt.title('Rating chart')
+    plt.savefig('./matplotlib_files/' + filename + '.png', bbox_inches='tight')
 
 
 class ConsoleView:
@@ -1353,6 +1388,43 @@ class ConsoleView:
             except Exception as err:
                 print(err)
 
+    def graph_menu(self, albums_filter, artists_filter, compositions_filter, playlists_filter,
+                   history_filter, rating_filter, pagination):
+        actions_list = ['go back', 'get_albums_rating_analysis_data', 'get_artists_rating_analysis_data',
+                        'get_compositions_rating_analysis_data', 'get_playlists_rating_analysis_data',
+                        'get_artists_listening_analysis_data', 'get_compositions_listening_analysis_data',
+                        'get_compositions_listening_analysis_data', 'get_rating_analysis_data']
+
+        pagination_addition = '_page-' + to_str(pagination.page) + '_page_size-' + to_str(pagination.page_size)
+        rated_types = {1: 'composition', 2: 'album', 3: 'playlist'}
+        rated_type = rated_types[rating_filter.rated_type]
+
+        actions = {
+            1: lambda: visualize_entities_rating(self.controller.get_albums_rating_analysis_data(albums_filter, pagination), 'top_rated_albums'+pagination_addition),
+            2: lambda: visualize_entities_rating(self.controller.get_artists_rating_analysis_data(artists_filter, pagination), 'top_rated_artists'+pagination_addition),
+            3: lambda: visualize_entities_rating(self.controller.get_compositions_rating_analysis_data(compositions_filter, pagination), 'top_rated_compositions'+pagination_addition),
+            4: lambda: visualize_entities_rating(self.controller.get_playlists_rating_analysis_data(playlists_filter, pagination), 'top_rated_playlists'+pagination_addition),
+            5: lambda: visualize_entities_listening(self.controller.get_artists_listening_analysis_data(artists_filter, pagination), 'top_listened_artists'+pagination_addition),
+            6: lambda: visualize_entities_listening(self.controller.get_compositions_listening_analysis_data(compositions_filter, pagination), 'top_listened_compositios'+pagination_addition),
+            7: lambda: visualize_listening_history(self.controller.get_listening_history_analysis_data(history_filter), 'listening_chart_for_'+to_str(history_filter.compositions_ids)),
+            8: lambda: visualize_rating_history(self.controller.get_rating_analysis_data(rating_filter), 'rating_chart_for_'+rated_type+'_'+to_str(history_filter.compositions_ids)),
+        }
+
+        while True:
+            print('Choose analysis target')
+            view_numerated_array(actions_list)
+
+            try:
+                action = get_int()
+                if action is None:
+                    raise ValueError('You need to enter action')
+                elif action == 0:
+                    break
+
+                actions[action]()
+            except Exception as err:
+                print(err)
+
     def call_interface(self):
         users_filter = UserFilter()
         compositions_filter = CompositionFilter()
@@ -1361,170 +1433,84 @@ class ConsoleView:
         playlists_filter = PlaylistFilter()
         history_filter = HistoryFilter()
         rating_filter = RatingFilter()
-        pagination_filter = PaginationFilter()
+        pagination = PaginationFilter()
 
-        possible_albums_orders = ['album_id', 'title', 'release_date', 'compositions_number', 'times_rated',
-                                  'average_rating', 'users_saved_number']
-        possible_artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened',
-                                   'times_rated', 'average_rating', 'playlists_belong_number',
-                                   'albums_belong_number']
-        possible_compositions_orders = ['composition_id', 'title', 'artist_id', 'duration', 'release_date',
-                                        'times_listened', 'times_rated', 'average_rating',
-                                        'playlists_belong_number', 'albums_belong_number']
-        possible_history_orders = ['record_id', 'user_id', 'composition_id', 'listening_date']
-        possible_playlists_orders = ['playlist_id', 'title', 'creator_id', 'privacy_id',
-                                     'compositions_number', 'times_rated', 'average_rating',
-                                     'users_saved_number']
-        possible_rating_orders = ['rating_id', 'rated_id', 'user_id', 'satisfied', 'rating_date']
-        possible_users_orders = ['user_id', 'username', 'registration_date', 'is_active', 'full_name',
-                                 'birth_date', 'gender', 'times_listened', 'times_compositions_rated',
-                                 'compositions_average_rating', 'times_albums_rated',
-                                 'albums_average_rating', 'times_playlists_rate',
-                                 'playlists_average_rating',
-                                 'albums_saved_number', 'playlists_saved_number']
+        albums_orders = ['album_id', 'title', 'release_date', 'compositions_number', 'times_rated',
+                         'average_rating', 'users_saved_number']
+        artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened',
+                          'times_rated', 'average_rating', 'playlists_belong_number',
+                          'albums_belong_number']
+        compositions_orders = ['composition_id', 'title', 'artist_id', 'duration', 'release_date',
+                               'times_listened', 'times_rated', 'average_rating',
+                               'playlists_belong_number', 'albums_belong_number']
+        history_orders = ['record_id', 'user_id', 'composition_id', 'listening_date']
+        playlists_orders = ['playlist_id', 'title', 'creator_id', 'privacy_id',
+                            'compositions_number', 'times_rated', 'average_rating',
+                            'users_saved_number']
+        rating_orders = ['rating_id', 'rated_id', 'user_id', 'satisfied', 'rating_date']
+        users_orders = ['user_id', 'username', 'registration_date', 'is_active', 'full_name',
+                        'birth_date', 'gender', 'times_listened', 'times_compositions_rated',
+                        'compositions_average_rating', 'times_albums_rated',
+                        'albums_average_rating', 'times_playlists_rate',
+                        'playlists_average_rating',
+                        'albums_saved_number', 'playlists_saved_number']
 
         # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
         #                not func.startswith('__') and not func.startswith('fill_')]
         method_list = ['exit', 'filling menu',
-            'add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
-            'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
-            'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
-            'get_album', 'get_albums', 'get_artists', 'get_compositions', 'get_listening_history',
-            'get_playlist', 'get_playlists', 'get_rating', 'get_users', 'listen_composition', 'rate_album',
-            'rate_composition', 'rate_playlist', 'remove_album_composition', 'remove_playlist_composition',
-            'remove_user_album', 'remove_user_playlist', 'unlisten_composition', 'unrate_album',
-            'unrate_composition', 'unrate_playlist', 'update_album', 'update_artist', 'update_composition',
-            'update_playlist', 'update_user']
+                       'add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
+                       'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
+                       'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
+                       'get_album', 'get_albums', 'get_artists', 'get_compositions', 'get_listening_history',
+                       'get_playlist', 'get_playlists', 'get_rating', 'get_users', 'listen_composition', 'rate_album',
+                       'rate_composition', 'rate_playlist', 'remove_album_composition', 'remove_playlist_composition',
+                       'remove_user_album', 'remove_user_playlist', 'unlisten_composition', 'unrate_album',
+                       'unrate_composition', 'unrate_playlist', 'update_album', 'update_artist', 'update_composition',
+                       'update_playlist', 'update_user']
 
         methods = {
-            1: lambda: view_boolean_result(self.controller.add_album_composition(
-                get_int('album_id'),
-                get_int('composition_id')
-            )),
-            2: lambda: view_boolean_result(self.controller.add_playlist_composition(
-                get_int('playlist_id'),
-                get_int('composition_id')
-            )),
-            3: lambda: view_boolean_result(self.controller.add_user_album(
-                get_int('album_id'),
-                get_int('user_id')
-            )),
-            4: lambda: view_boolean_result(self.controller.add_user_playlist(
-                get_int('playlist_id'),
-                get_int('user_id')
-            )),
-            5: lambda: view_entity_list(self.controller.create_album(construct_album()), 'Album'),
-            6: lambda: view_entity_list(self.controller.create_artist(construct_artist()), 'Artist'),
-            7: lambda: view_entity_list(self.controller.create_composition(construct_composition()), 'Composition'),
-            8: lambda: view_entity_list(self.controller.create_playlist(construct_playlist()), 'Playlist'),
-            9: lambda: view_entity_list(self.controller.create_user(construct_user()), 'User'),
-            10: lambda: view_entity_list(self.controller.delete_album(get_int('id')), 'Album'),
-            11: lambda: view_entity_list(self.controller.delete_artist(get_int('id')), 'Artist'),
-            12: lambda: view_entity_list(self.controller.delete_composition(get_int('id')), 'Composition'),
-            13: lambda: view_entity_list(self.controller.delete_playlist(get_int('id')), 'Playlist'),
-            14: lambda: view_entity_list(self.controller.delete_user(get_int('id')), 'User'),
-            15: lambda: view_entity_list(self.controller.get_album(get_int('id')), 'Album'),
-            16: lambda: getters_interface(
-                self.controller.get_album,
-                albums_filter,
-                pagination_filter,
-                possible_albums_orders,
-                'Album'
-            ),
-            17: lambda: getters_interface(
-                self.controller.get_artists,
-                artists_filter,
-                pagination_filter,
-                possible_artists_orders,
-                'Artist'
-            ),
-            18: lambda: getters_interface(
-                self.controller.get_compositions,
-                compositions_filter,
-                pagination_filter,
-                possible_compositions_orders,
-                'Composition'
-            ),
-            19: lambda: getters_interface(
-                self.controller.get_history,
-                history_filter,
-                pagination_filter,
-                possible_history_orders,
-                'History record'
-            ),
-            20: lambda: view_entity_list(self.controller.get_playlist(get_int('id')), 'Playlist'),
-            21: lambda: getters_interface(
-                self.controller.get_playlists,
-                playlists_filter,
-                pagination_filter,
-                possible_playlists_orders,
-                'Playlist'
-            ),
-            22: lambda: getters_interface(
-                self.controller.get_rating,
-                rating_filter,
-                pagination_filter,
-                possible_rating_orders,
-                'Rating record'
-            ),
-            23: lambda: getters_interface(
-                self.controller.get_users,
-                users_filter,
-                pagination_filter,
-                possible_users_orders,
-                'User'
-            ),
-            24: lambda:
-            view_entity_list(self.controller.listen_composition(construct_history_record()), 'History record'),
-            25: lambda:
-            view_entity_list(self.controller.rate_album(construct_rating_record()), 'Rating record'),
-            26: lambda:
-            view_entity_list(self.controller.rate_composition(construct_rating_record()), 'Rating record'),
-            27: lambda:
-            view_entity_list(self.controller.rate_playlist(construct_rating_record()), 'Rating record'),
-            28: lambda: view_boolean_result(self.controller.remove_album_composition(
-                get_int('album_id'),
-                get_int('composition_id')
-            )),
-            29: lambda: view_boolean_result(self.controller.remove_playlist_composition(
-                get_int('playlist_id'),
-                get_int('composition_id')
-            )),
-            30: lambda: view_boolean_result(self.controller.remove_user_album(
-                get_int('album_id'),
-                get_int('user_id')
-            )),
-            31: lambda: view_boolean_result(self.controller.remove_playlist_composition(
-                get_int('playlist_id'),
-                get_int('user_id')
-            )),
-            32: lambda: view_entity_list(self.controller.unlisten_composition(get_int('id')), 'History record'),
-            33: lambda: view_entity_list(
-                self.controller.unrate_composition(
-                    get_int('album_id'),
-                    get_int('user_id')
-                ),
-                'Rating record'
-            ),
-            34: lambda: view_entity_list(
-                self.controller.unrate_composition(
-                    get_int('composition_id'),
-                    get_int('user_id')
-                ),
-                'Rating record'
-            ),
-            35: lambda: view_entity_list(
-                self.controller.unrate_playlist(
-                    get_int('playlist_id'),
-                    get_int('user_id')
-                ),
-                'Rating record'
-            ),
-            36: lambda: view_entity_list(self.controller.update_album(construct_album()), 'Album'),
-            37: lambda: view_entity_list(self.controller.update_artist(construct_artist()), 'Artist'),
-            38: lambda: view_entity_list(self.controller.update_composition(construct_composition()), 'Composition'),
-            39: lambda: view_entity_list(self.controller.update_playlist(construct_playlist()), 'Playlist'),
-            40: lambda: view_entity_list(self.controller.update_user(construct_user()), 'User'),
+            1: lambda: self.controller.add_album_composition(get_int('album_id'), get_int('composition_id')),
+            2: lambda: self.controller.add_playlist_composition(get_int('playlist_id'), get_int('composition_id')),
+            3: lambda: self.controller.add_user_album(get_int('album_id'), get_int('user_id')),
+            4: lambda: self.controller.add_user_playlist(get_int('playlist_id'), get_int('user_id')),
+            5: lambda: self.controller.create_album(construct_album()),
+            6: lambda: self.controller.create_artist(construct_artist()),
+            7: lambda: self.controller.create_composition(construct_composition()),
+            8: lambda: self.controller.create_playlist(construct_playlist()),
+            9: lambda: self.controller.create_user(construct_user()),
+            10: lambda: self.controller.delete_album(get_int('id')),
+            11: lambda: self.controller.delete_artist(get_int('id')),
+            12: lambda: self.controller.delete_composition(get_int('id')),
+            13: lambda: self.controller.delete_playlist(get_int('id')),
+            14: lambda: self.controller.delete_user(get_int('id')),
+            15: lambda: self.controller.get_album(get_int('id')),
+            16: lambda: getters_interface(self.controller.get_album, albums_filter, pagination, albums_orders),
+            17: lambda: getters_interface(self.controller.get_artists, artists_filter, pagination, artists_orders),
+            18: lambda: getters_interface(self.controller.get_compositions, compositions_filter, pagination,
+                                          compositions_orders),
+            19: lambda: getters_interface(self.controller.get_history, history_filter, pagination, history_orders),
+            20: lambda: self.controller.get_playlist(get_int('id')),
+            21: lambda: getters_interface(self.controller.get_playlists, playlists_filter, pagination,
+                                          playlists_orders),
+            22: lambda: getters_interface(self.controller.get_rating, rating_filter, pagination, rating_orders),
+            23: lambda: getters_interface(self.controller.get_users, users_filter, pagination, users_orders),
+            24: lambda: self.controller.listen_composition(construct_history_record()),
+            25: lambda: self.controller.rate_album(construct_rating_record()),
+            26: lambda: self.controller.rate_composition(construct_rating_record()),
+            27: lambda: self.controller.rate_playlist(construct_rating_record()),
+            28: lambda: self.controller.remove_album_composition(get_int('album_id'), get_int('composition_id')),
+            29: lambda: self.controller.remove_playlist_composition(get_int('playlist_id'), get_int('composition_id')),
+            30: lambda: self.controller.remove_user_album(get_int('album_id'), get_int('user_id')),
+            31: lambda: self.controller.remove_playlist_composition(get_int('playlist_id'), get_int('user_id')),
+            32: lambda: self.controller.unlisten_composition(get_int('id')),
+            33: lambda: self.controller.unrate_album(get_int('album_id'), get_int('user_id')),
+            34: lambda: self.controller.unrate_composition(get_int('composition_id'), get_int('user_id')),
+            35: lambda: self.controller.unrate_playlist(get_int('playlist_id'), get_int('user_id')),
+            36: lambda: self.controller.update_album(construct_album()),
+            37: lambda: self.controller.update_artist(construct_artist()),
+            38: lambda: self.controller.update_composition(construct_composition()),
+            39: lambda: self.controller.update_playlist(construct_playlist()),
+            40: lambda: self.controller.update_user(construct_user()),
         }
 
         while True:
@@ -1535,11 +1521,14 @@ class ConsoleView:
                 method_id = get_int()
                 if method_id is None:
                     raise ValueError('You need to enter action')
+                elif method_id == -2:
+                    self.graph_menu(albums_filter, artists_filter, compositions_filter, playlists_filter,
+                                    history_filter, rating_filter, pagination)
                 elif method_id == -1:
                     print('Closing')
                     break
                 elif method_id == 0:
                     self.filling_menu()
-                methods[method_id]()
+                print(methods[method_id]())
             except Exception as err:
                 print(err)
