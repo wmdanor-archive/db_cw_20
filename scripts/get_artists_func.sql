@@ -142,8 +142,8 @@ create or replace function get_artists
 returns table
 (
     artist_id integer,
-    name character varying(64),
-    type character varying(16),
+    name character varying(256),
+    type character varying(32),
     gender character varying(32),
     begin_date_year smallint,
     begin_date_month smallint,

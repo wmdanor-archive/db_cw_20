@@ -217,10 +217,10 @@ returns table
 (
 	user_id integer,
     username character varying(16),
-    password_hash character varying(65),
+    password_hash character varying(64),
     registration_date date,
     is_active boolean,
-    full_name character varying(65),
+    full_name character varying(256),
     birth_date date,
     gender character varying(32),
 	times_listened bigint,

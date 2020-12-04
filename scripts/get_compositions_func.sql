@@ -142,7 +142,7 @@ create or replace function get_compositions
 returns table
 (
 	composition_id integer,
-    title character varying(64),
+    title character varying(256),
     artist_id integer,
     duration smallint,
     release_year smallint,

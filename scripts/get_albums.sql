@@ -108,7 +108,7 @@ create or replace function get_albums
 returns table
 (
 	albums_id integer,
-    title character varying(32),
+    title character varying(256),
     release_year smallint,
     release_month smallint,
     release_day smallint,

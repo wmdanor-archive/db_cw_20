@@ -109,7 +109,7 @@ create or replace function get_playlists
 returns table
 (
 	playlist_id integer,
-    title character varying(32),
+    title character varying(256),
     creator_id integer,
 	privacy character varying(16),
 	compositions_number bigint,
