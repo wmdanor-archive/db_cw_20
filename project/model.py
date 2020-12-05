@@ -85,7 +85,7 @@ class ModelPSQL:
         self.__cursor.execute('insert into users (username, password_hash, registration_date, is_active, full_name, '
                               'birth_date, gender_id) '
                               'select \'username \'||s.a, \'password hash \'||s.a, '
-                              '(date \'2020-11-1\' - \'5 years\'::interval + justify_interval(\'5 years\'::interval/'
+                              '(date \'2020-1-1\' - \'4 years\'::interval + justify_interval(\'4 years\'::interval/'
                               '(%(end)s - %(start)s + 1) * s.a))::date, '
                               'toss_a_coin(0.95), case when toss_a_coin(0.6) then \'full name \'||s.a else null::text '
                               'end, '
