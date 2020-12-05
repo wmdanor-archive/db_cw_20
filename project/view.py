@@ -1225,7 +1225,7 @@ def visualize_entities_rating(data, filename):
                 ha='center', va='bottom', rotation=90)
 
     plt.ylim(0, 10)
-    plt.title('Top rated')
+    plt.title('Most rated')
     plt.savefig('./matplotlib_files/' + filename + '.png', bbox_inches='tight')
 
 
@@ -1243,7 +1243,7 @@ def visualize_entities_listening(data, filename):
     bar_plot = plt.bar(x, listened)
     plt.xticks(x, label, rotation='vertical')
 
-    plt.title('Top listened')
+    plt.title('Most listened')
     plt.savefig('./matplotlib_files/' + filename + '.png', bbox_inches='tight')
 
 

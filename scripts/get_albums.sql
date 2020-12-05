@@ -39,7 +39,7 @@ return query execute
 	COALESCE(albums.album_id = ANY($8), true) AND
 	COALESCE(rating_date >= $1, true) AND
 	COALESCE(rating_date <= $2, true)
-	GROUP BY compositions.composition_id
+	GROUP BY albums.album_id
    	HAVING (
 		COALESCE(COUNT(albums_rating) >= $3, true) AND
 		COALESCE(COUNT(albums_rating) <= $4, true) AND

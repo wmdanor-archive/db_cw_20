@@ -274,10 +274,10 @@ if compositions_rating_toggle then
 comp_rate_join := 'get_users_compositions_rating_statistics($15, $10) AS comp_rate ON users.user_id = comp_rate.user_id';
 end if;
 if albums_rating_toggle then
-plist_rate_join := 'get_users_albums_rating_statistics($15, $11) AS plist_rate ON users.user_id = plist_rate.user_id';
+album_rate_join := 'get_users_albums_rating_statistics($15, $12) AS album_rate ON users.user_id = album_rate.user_id';
 end if;
 if playlists_rating_toggle then
-album_rate_join := 'get_users_playlists_rating_statistics($15, $12) AS album_rate ON users.user_id = album_rate.user_id';
+plist_rate_join := 'get_users_playlists_rating_statistics($15, $11) AS plist_rate ON users.user_id = plist_rate.user_id';
 end if;
 if saved_albums_toggle then
 saved_albums_join := 'get_users_saved_albums_statistics($15, $13) AS album_saved ON users.user_id = album_saved.user_id';
@@ -329,9 +329,9 @@ return query execute
 	users.registration_date, users.is_active, users.full_name,
 	users.birth_date, genders.name,
 	comp_hist.times_listened, comp_rate.times_rated, round(comp_rate.avg_rating, 2)::real as compositions_average_rating,
-	plist_rate.times_rated, round(plist_rate.avg_rating, 2)::real as playlists_average_rating,
 	album_rate.times_rated, round(album_rate.avg_rating, 2)::real as albums_average_rating,
-	plist_saved.saved_number, album_saved.saved_number
+	plist_rate.times_rated, round(plist_rate.avg_rating, 2)::real as playlists_average_rating,
+	album_saved.saved_number, plist_saved.saved_number
 	FROM users
 	LEFT JOIN genders ON users.gender_id = genders.gender_id
 	INNER JOIN ' || hist_join || '
