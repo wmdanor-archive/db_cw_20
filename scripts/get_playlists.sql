@@ -132,7 +132,8 @@ orders_types constant text array := array[
     'comp.compositions_number',
     'rate.times_rated',
     'average_rating',
-    'users.users_saved_number'
+    'users.users_saved_number',
+	'calculate_rating_weight(rate.avg_rating, rate.times_rated)'
 ];
 order_type integer;
 privacies_ids integer array := null;
@@ -158,7 +159,7 @@ if array_length(orders, 1) = 0 then
 end if;
 foreach order_type in array orders
 loop
-	if order_type = 0 or abs(order_type) > 10 then
+	if order_type = 0 or abs(order_type) > array_length(orders_types, 1) then
 		raise exception 'invalid order type value %', order_type;
 	end if;
 	if order_type > 0 then
@@ -190,6 +191,7 @@ return query execute
 	INNER JOIN ' || rate_join || '
 	INNER JOIN ' || users_join || '
 	WHERE
+	
 	COALESCE(playlists.playlist_id = ANY($7), true) AND
 	COALESCE(playlists.title LIKE ''%%''||$1||''%%'', true) AND
 	COALESCE(creator_id = ANY($2)'|| creator_search_mode ||', true) AND
@@ -213,5 +215,5 @@ select * from get_playlists( null,
 	true,
 	row(null, null, null, null),
 	row(null, null),
-	array[1, 2, 3, 4, 5, 6, 7, 8]
+	array[-9]
 )

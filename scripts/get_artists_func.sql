@@ -180,7 +180,8 @@ orders_types constant text array := array[
     'rate.times_rated',
     'average_rating',
     'plist_belong.belongs_number',
-    'album_belong.belongs_number'
+    'album_belong.belongs_number',
+	'calculate_rating_weight(rate.avg_rating, rate.times_rated)'
 ];
 order_type integer;
 types_ids integer array := null;
@@ -231,7 +232,7 @@ if array_length(orders, 1) = 0 then
 end if;
 foreach order_type in array orders
 loop
-	if order_type = 0 or abs(order_type) > 11 then
+	if order_type = 0 or abs(order_type) > array_length(orders_types, 1) then
 		raise exception 'invalid order type value %', order_type;
 	end if;
 	if order_type > 0 then
@@ -266,7 +267,7 @@ return query execute
 	plist_belong.belongs_number, album_belong.belongs_number
 	FROM artists
 	LEFT JOIN artist_types ON artists.type_id = artist_types.type_id
-	LEFT JOIN genders ON artists.gender_id = artists.gender_id
+	LEFT JOIN genders ON artists.gender_id = genders.gender_id
 	INNER JOIN ' || hist_join || '
 	INNER JOIN ' || rate_join || '
 	INNER JOIN ' || plist_join || '
@@ -310,5 +311,5 @@ select * from get_artists( null,
 	true,
 	row(null, null, null, null),
 	row(null, null),
-	array[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+	array[-12]
 )

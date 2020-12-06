@@ -122,6 +122,7 @@ $$ language plpgsql called on null input;
 -- 8 - average_rating
 -- 9 - playlists_belong_number
 -- 10 - albums_belong_number
+-- 11 - rating_weight
 -- positive - asc
 -- negative - desc
 create or replace function get_compositions
@@ -179,7 +180,8 @@ orders_types constant text array := array[
     'rate.times_rated',
     'average_rating',
     'plist_belong.belongs_number',
-    'album_belong.belongs_number'
+    'album_belong.belongs_number',
+	'calculate_rating_weight(rate.avg_rating, rate.times_rated)'
 ];
 order_type integer;
 begin
@@ -214,7 +216,7 @@ if array_length(orders, 1) = 0 then
 end if;
 foreach order_type in array orders
 loop
-	if order_type = 0 or abs(order_type) > 10 then
+	if order_type = 0 or abs(order_type) > array_length(orders_types, 1) then
 		raise exception 'invalid order type value %', order_type;
 	end if;
 	if order_type > 0 then
@@ -259,10 +261,10 @@ select * from get_compositions( null,
 	row(null, null, null, null, null, null),
 	true,
 	row(null, null, null, null, null, null, null, null), 
-	true,
+	false,
 	row(null, null, null, null),
-	true,
+	false,
 	row(null, null, null, null),
 	row(null, null),
-	array[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+	array[-6]
 )

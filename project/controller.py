@@ -223,7 +223,7 @@ class ControllerPSQL:
         filter_copy.users.toggle = False
         filter_copy.compositions.toggle = False
         filter_copy.rating.toggle = True
-        objects = self.model.get_albums(filter_copy, -5, pagination_filter)
+        objects = self.model.get_albums(filter_copy, -8, pagination_filter)
         data = []
         for item in objects:
             data.append({
@@ -239,7 +239,7 @@ class ControllerPSQL:
         filter_copy.history.toggle = False
         filter_copy.albums.toggle = False
         filter_copy.playlists.toggle = False
-        objects = self.model.get_artists(filter_copy, -7, pagination_filter)
+        objects = self.model.get_artists(filter_copy, -12, pagination_filter)
         data = []
         for item in objects:
             data.append({
@@ -255,7 +255,7 @@ class ControllerPSQL:
         filter_copy.history.toggle = False
         filter_copy.albums.toggle = False
         filter_copy.playlists.toggle = False
-        objects = self.model.get_compositions(filter_copy, -7, pagination_filter)
+        objects = self.model.get_compositions(filter_copy, -11, pagination_filter)
         data = []
         for item in objects:
             data.append({
@@ -270,7 +270,7 @@ class ControllerPSQL:
         filter_copy.rating.toggle = True
         filter_copy.users.toggle = False
         filter_copy.compositions.toggle = False
-        objects = self.model.get_playlists(filter_copy, -6, pagination_filter)
+        objects = self.model.get_playlists(filter_copy, -9, pagination_filter)
         data = []
         for item in objects:
             data.append({

@@ -8,6 +8,7 @@ import xlrd
 import math
 import csv
 import sqlite3
+import numpy
 
 conn = sqlite3.connect(r"C:\Users\Igor\Desktop\billboard-200 — копия.db")
 cur = conn.cursor()
@@ -179,7 +180,11 @@ cursor.execute('select compositions.composition_id, album_id from compositions '
                'album_comp_links.composition_id = compositions.composition_id')
 for row in cursor:
     comps.append(row['composition_id'])
-    comps_r[row['composition_id']] = random.uniform(0.55, 1)
+    while True:
+        temp = numpy.random.normal(7, 0.5**0.5) / 10
+        if 0 <= temp <= 10:
+            comps_r[row['composition_id']] = temp
+            break
     comps_a[row['composition_id']] = row['album_id']
 
 print(len(users))
@@ -187,17 +192,13 @@ print(len(comps))
 ulen = len(users) - 1
 clen = len(comps) - 1
 
-denom = math.sqrt(2 * 0.13)
-
-distr_law = lambda x: 1 * (1 + math.erf((x - 1) / denom))
 
 part = 1 / len(comps)
 for counter in range(0, len(comps)):
-    # comps_distr.append(random.uniform(0.3*part, 1.7*part))
     while True:
-        temp = distr_law(random.uniform(0, 2)) / len(comps)
+        temp = numpy.random.normal(1, 0.22**0.5) / len(comps)
         if temp > 0:
-            comps_distr.append(distr_law(random.uniform(0, 2)) / len(comps))
+            comps_distr.append(temp)
             break
 # comps[len(comps)-1] = 1 - sum(comps_distr[0:len(comps_distr)-2])
 print(sum(comps_distr))
@@ -315,6 +316,7 @@ print()
 
 print('Execution time', round(time() - ts, 2))
 
+# exit(0)
 # endregion
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -406,15 +408,19 @@ plists_r = {}
 cursor.execute('select playlist_id from playlists where privacy_id = 1')
 for row in cursor:
     plists.append(row['playlist_id'])
-    plists_r[row['playlist_id']] = random.uniform(0.55, 1)
+    while True:
+        temp = numpy.random.normal(7, 0.5**0.5) / 10
+        if 0 <= temp <= 10:
+            plists_r[row['playlist_id']] = temp
+            break
 
 
 part = 1 / len(plists)
 for counter in range(0, len(plists)):
     while True:
-        temp = distr_law(random.uniform(0, 2)) / len(plists)
+        temp = numpy.random.normal(1, 0.22**0.5) / len(plists)
         if temp > 0:
-            plists_distr.append(distr_law(random.uniform(0, 2)) / len(plists))
+            plists_distr.append(temp)
             break
 
 temp = (1 - sum(plists_distr)) / len(plists_distr)

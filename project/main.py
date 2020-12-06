@@ -25,7 +25,7 @@ v = ConsoleView(connection)
 v.call_interface()
 exit(0)
 
-# c.get_playlist(9)
+# c.get_playlist(9)18
 
 # playlist = Playlist(None, 'test pl1', PlaylistPrivacy.public, None, 1)
 
