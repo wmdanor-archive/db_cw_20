@@ -15,11 +15,6 @@ drop index user_gender_idx;
 
 -- trash
 
-insert into artists(name, type_id, gender_id, begin_date_year, begin_date_month, begin_date_day,
-				   end_date_year, end_date_month, end_date_day, comment)
-select * from select_random_artists(900001, 1000000)
-
-
 select * from artists -- 1
 where gender_id = any(array[1, 2])
 
