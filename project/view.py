@@ -1255,7 +1255,7 @@ def visualize_listening_history(data, filename):
     dt = max(1, int(s / 99))
     for i in range(0, min(s, 100)):
         x_arr.append(data[i * dt]['listening_date'])
-        y_arr.append(data[i * dt]['times_composition_listened'])
+        y_arr.append(data[i * dt]['times_listened'])
 
     fig = plt.figure()
     plt.plot(x_arr, y_arr)
@@ -1286,114 +1286,12 @@ class ConsoleView:
     def __init__(self, connection):
         self.controller = ControllerPSQL(connection)
 
-    def filling_menu(self):
-        tables = ['go back', 'artists', 'compositions', 'users', 'history', 'compositions_rating',
-                  'playlists', 'playlists_compositions']
-        while True:
-            print('Choose action')
-            view_numerated_array(tables)
-
-            try:
-                method_id = get_int()
-                if method_id is None:
-                    raise ValueError('You need to enter action')
-                elif method_id == 0:
-                    break
-                elif method_id == 1:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_artists(start_number, end_number)
-                elif method_id == 2:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_compositions(start_number, end_number)
-                elif method_id == 3:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_users(start_number, end_number)
-                elif method_id == 4:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_history(start_number, end_number)
-                elif method_id == 5:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_compositions_rating(start_number, end_number)
-                elif method_id == 6:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_playlists(start_number, end_number)
-                elif method_id == 7:
-                    start_number = get_int('start_number')
-                    if start_number is None or start_number < 1:
-                        raise ValueError('Invalid input')
-
-                    end_number = get_int('end_number')
-                    if end_number is None or end_number <= start_number:
-                        raise ValueError('Invalid input')
-
-                    check = get_bool('Are you sure?')
-                    if check:
-                        self.controller.fill_playlists_compositions(start_number, end_number)
-                else:
-                    raise ValueError('Invalid input')
-            except Exception as err:
-                print(err)
-
     def graph_menu(self, albums_filter, artists_filter, compositions_filter, playlists_filter,
                    history_filter, rating_filter, pagination):
         actions_list = ['go back', 'get_albums_rating_analysis_data', 'get_artists_rating_analysis_data',
                         'get_compositions_rating_analysis_data', 'get_playlists_rating_analysis_data',
                         'get_artists_listening_analysis_data', 'get_compositions_listening_analysis_data',
-                        'get_compositions_listening_analysis_data', 'get_rating_analysis_data']
+                        'get_composition_listening_analysis_data', 'get_rating_analysis_data']
 
         pagination_addition = '_page-' + to_str(pagination.page) + '_page_size-' + to_str(pagination.page_size)
         rated_types = {1: 'composition', 2: 'album', 3: 'playlist'}
@@ -1457,7 +1355,7 @@ class ConsoleView:
 
         # method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
         #                not func.startswith('__') and not func.startswith('fill_')]
-        method_list = ['graph analyis menu', 'exit', 'filling menu',
+        method_list = ['exit', 'graph analysis menu',
                        'add_album_composition', 'add_playlist_composition', 'add_user_album', 'add_user_playlist',
                        'create_album', 'create_artist', 'create_composition', 'create_playlist', 'create_user',
                        'delete_album', 'delete_artist', 'delete_composition', 'delete_playlist', 'delete_user',
@@ -1486,12 +1384,10 @@ class ConsoleView:
             15: lambda: self.controller.get_album(get_int('id')),
             16: lambda: getters_interface(self.controller.get_album, albums_filter, pagination, albums_orders),
             17: lambda: getters_interface(self.controller.get_artists, artists_filter, pagination, artists_orders),
-            18: lambda: getters_interface(self.controller.get_compositions, compositions_filter, pagination,
-                                          compositions_orders),
+            18: lambda: getters_interface(self.controller.get_compositions, compositions_filter, pagination, compositions_orders),
             19: lambda: getters_interface(self.controller.get_history, history_filter, pagination, history_orders),
             20: lambda: self.controller.get_playlist(get_int('id')),
-            21: lambda: getters_interface(self.controller.get_playlists, playlists_filter, pagination,
-                                          playlists_orders),
+            21: lambda: getters_interface(self.controller.get_playlists, playlists_filter, pagination, playlists_orders),
             22: lambda: getters_interface(self.controller.get_rating, rating_filter, pagination, rating_orders),
             23: lambda: getters_interface(self.controller.get_users, users_filter, pagination, users_orders),
             24: lambda: self.controller.listen_composition(construct_history_record()),
@@ -1515,20 +1411,18 @@ class ConsoleView:
 
         while True:
             print('Choose method')
-            view_numerated_array(method_list, -2)
+            view_numerated_array(method_list, -1)
 
             try:
                 method_id = get_int()
                 if method_id is None:
                     raise ValueError('You need to enter action')
-                elif method_id == -2:
-                    self.graph_menu(albums_filter, artists_filter, compositions_filter, playlists_filter,
-                                    history_filter, rating_filter, pagination)
                 elif method_id == -1:
                     print('Closing')
                     break
                 elif method_id == 0:
-                    self.filling_menu()
+                    self.graph_menu(albums_filter, artists_filter, compositions_filter, playlists_filter,
+                                    history_filter, rating_filter, pagination)
                 print(methods[method_id]())
             except Exception as err:
                 print(err)

@@ -1,0 +1,80 @@
+1 - get_albums_rating_analysis_data
+2 - get_artists_rating_analysis_data
+3 - get_compositions_rating_analysis_data
+4 - get_playlists_rating_analysis_data
+5 - get_artists_listening_analysis_data
+6 - get_compositions_listening_analysis_data
+7 - get_composition_listening_analysis_data
+8 - get_rating_analysis_data
+
+1
+{'name': 'Cheers To The Fall', 'times_rated': 171, 'avg_rating': 7.66}
+{'name': 'Braver Than We Are', 'times_rated': 87, 'avg_rating': 7.93}
+{'name': 'The Flash: Music From The Special Episode: Duet (EP)', 'times_rated': 332, 'avg_rating': 7.44}
+{'name': '35 Biggest Hits', 'times_rated': 328, 'avg_rating': 7.38}
+{'name': 'Made In The A.M.', 'times_rated': 181, 'avg_rating': 7.51}
+{'name': 'Los Duo 2', 'times_rated': 159, 'avg_rating': 7.55}
+{'name': 'Stories', 'times_rated': 151, 'avg_rating': 7.55}
+{'name': 'Reloaded: 20 #1 Hits', 'times_rated': 177, 'avg_rating': 7.46}
+{'name': '1000 Forms Of Fear', 'times_rated': 201, 'avg_rating': 7.41}
+{'name': 'Currents', 'times_rated': 180, 'avg_rating': 7.44}
+
+2
+{'name': 'The Chainsmokers', 'times_rated': 2400, 'avg_rating': 7.62}
+{'name': 'Juan Gabriel', 'times_rated': 6441, 'avg_rating': 7.46}
+{'name': 'Halsey', 'times_rated': 7512, 'avg_rating': 7.41}
+{'name': 'X Ambassadors', 'times_rated': 8836, 'avg_rating': 7.36}
+{'name': 'Chris Young', 'times_rated': 5517, 'avg_rating': 7.38}
+{'name': 'Andra Day', 'times_rated': 6071, 'avg_rating': 7.36}
+{'name': 'One Direction', 'times_rated': 8184, 'avg_rating': 7.33}
+{'name': 'Mannheim Steamroller', 'times_rated': 9196, 'avg_rating': 7.31}
+{'name': 'Eric Church', 'times_rated': 5212, 'avg_rating': 7.3}
+{'name': 'Justin Bieber', 'times_rated': 7591, 'avg_rating': 7.23}
+
+3
+{'name': 'Hurricane', 'times_rated': 798, 'avg_rating': 9.06}
+{'name': 'Lisa Sawyer', 'times_rated': 689, 'avg_rating': 8.97}
+{'name': 'Ten Duel Commandments', 'times_rated': 540, 'avg_rating': 8.96}
+{'name': '679 (feat. Monty)', 'times_rated': 348, 'avg_rating': 8.88}
+{'name': "Adam & Noah's Priorities - Interlude", 'times_rated': 516, 'avg_rating': 8.8}
+{'name': 'Breaking Ground', 'times_rated': 335, 'avg_rating': 8.87}
+{'name': 'Just A Taste', 'times_rated': 586, 'avg_rating': 8.67}
+{'name': 'Sing', 'times_rated': 625, 'avg_rating': 8.64}
+{'name': 'I’ll Be Your Man (Song For A Daughter)', 'times_rated': 49, 'avg_rating': 9.39}
+{'name': 'Temporary Fix', 'times_rated': 490, 'avg_rating': 8.67}
+
+4
+{'name': 'Auto-generated playlist 908', 'times_rated': 76, 'avg_rating': 9.61}
+{'name': 'Auto-generated playlist 58', 'times_rated': 73, 'avg_rating': 9.45}
+{'name': 'Auto-generated playlist 766', 'times_rated': 72, 'avg_rating': 9.44}
+{'name': 'Auto-generated playlist 380', 'times_rated': 37, 'avg_rating': 9.73}
+{'name': 'User 2039 playlist #1', 'times_rated': 48, 'avg_rating': 9.58}
+{'name': 'Auto-generated playlist 508', 'times_rated': 58, 'avg_rating': 9.48}
+{'name': 'User 3898 playlist #3', 'times_rated': 33, 'avg_rating': 9.7}
+{'name': 'User 1936 playlist #2', 'times_rated': 33, 'avg_rating': 9.7}
+{'name': 'Auto-generated playlist 999', 'times_rated': 79, 'avg_rating': 9.24}
+{'name': 'User 1082 playlist #1', 'times_rated': 61, 'avg_rating': 9.34}
+
+5
+{'name': 'Original Broadway Cast Recording', 'times_listened': 424143}
+{'name': 'Soundtrack', 'times_listened': 423382}
+{'name': 'Tim McGraw', 'times_listened': 339083}
+{'name': 'Pentatonix', 'times_listened': 308652}
+{'name': 'A$AP Rocky', 'times_listened': 219647}
+{'name': 'Fetty Wap', 'times_listened': 216913}
+{'name': 'Imagine Dragons', 'times_listened': 215889}
+{'name': 'Lil Dicky', 'times_listened': 209012}
+{'name': 'Sia', 'times_listened': 203799}
+{'name': 'Mannheim Steamroller', 'times_listened': 198667}
+
+6
+{'name': 'Not Today', 'times_listened': 30298}
+{'name': 'Little Boys Grow Up And Dogs Get Old', 'times_listened': 25034}
+{'name': 'Two Doors Down', 'times_listened': 23683}
+{'name': 'Stressed Out', 'times_listened': 23246}
+{'name': 'Where Are U Now', 'times_listened': 22332}
+{'name': 'Sometimes I Cry', 'times_listened': 21975}
+{'name': 'These Arms', 'times_listened': 21227}
+{'name': 'Shine', 'times_listened': 21203}
+{'name': 'Something Like That', 'times_listened': 21059}
+{'name': 'Do I Make You Wanna', 'times_listened': 20975}

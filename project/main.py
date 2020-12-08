@@ -25,69 +25,6 @@ v = ConsoleView(connection)
 v.call_interface()
 exit(0)
 
-# c.get_playlist(9)18
-
-# playlist = Playlist(None, 'test pl1', PlaylistPrivacy.public, None, 1)
-
-# users_filter = UserFilter()
-# compositions_filter = CompositionFilter()
-# artists_filter = ArtistFilter()
-#
-# pagination_filter = PaginationFilter()
-# users_filter.history.toggle = True
-# compositions_filter.history.toggle = True
-# compositions_filter.rating.toggle = True
-# compositions_filter.playlists.toggle = True
-# compositions_filter.albums.toggle = True
-# artists_filter.history.toggle = True
-# artists_filter.rating.toggle = True
-# artists_filter.playlists.toggle = True
-# artists_filter.albums.toggle = True
-
-# c.get_users(users_filter, pagination_filter)
-# c.get_compositions(compositions_filter, pagination_filter)
-# c.get_artists(artists_filter, pagination_filter)
-# c.create_playlist(playlist)
-
-# c.call_interface()
-# method_list = [func for func in dir(ModelPSQL) if callable(getattr(ModelPSQL, func)) and
-#                not func.startswith('__') and not func.startswith('fill_')]
-# print(method_list)
-# i = 1
-# for item in method_list:
-#     print(i, item)
-#     i += 1
-# c.create_user(User(0, 'test 1', 'ph', '2020-11-8', True, gender_id=1))
-# user_model = User(0, 'test 1', 'ph', '2020-11-8', True, gender_id=1)
-# cursor = connection.cursor()
-# print(c.construct_artist())
-# c.delete_playlist(10)
-
-# print(users_filter)
-
-# playlist = m.get_playlist(1)
-#
-# v.view_playlist(playlist)
-
-# d1 = date(2016, 11, 3)
-# d2 = date(2020, 10, 30)
-# ts = (d2 - d1)/4
-# arr = []
-# i = 0
-# while i < 5:
-#     arr.append(d1 + ts*i)
-#     i += 1
-#
-# t1 = 0
-# t2 = 810
-#
-# ax = plt.gca()
-# formatter = mdates.DateFormatter("%Y-%m-%d")
-# ax.xaxis.set_major_formatter(formatter)
-#
-# locator = mdates.DayLocator()
-# ax.xaxis.set_major_locator(locator)
-
 # region listening history chart
 
 hf = HistoryFilter()
