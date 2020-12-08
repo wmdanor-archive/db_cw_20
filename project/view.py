@@ -1334,17 +1334,17 @@ class ConsoleView:
         pagination = PaginationFilter()
 
         albums_orders = ['album_id', 'title', 'release_date', 'compositions_number', 'times_rated',
-                         'average_rating', 'users_saved_number']
+                         'average_rating', 'users_saved_number', 'rating_weight']
         artists_orders = ['artist_id', 'name', 'type', 'gender', 'begin_date', 'times_listened',
                           'times_rated', 'average_rating', 'playlists_belong_number',
-                          'albums_belong_number']
+                          'albums_belong_number', 'rating_weight']
         compositions_orders = ['composition_id', 'title', 'artist_id', 'duration', 'release_date',
                                'times_listened', 'times_rated', 'average_rating',
-                               'playlists_belong_number', 'albums_belong_number']
+                               'playlists_belong_number', 'albums_belong_number', 'rating_weight']
         history_orders = ['record_id', 'user_id', 'composition_id', 'listening_date']
         playlists_orders = ['playlist_id', 'title', 'creator_id', 'privacy_id',
                             'compositions_number', 'times_rated', 'average_rating',
-                            'users_saved_number']
+                            'users_saved_number', 'rating_weight']
         rating_orders = ['rating_id', 'rated_id', 'user_id', 'satisfied', 'rating_date']
         users_orders = ['user_id', 'username', 'registration_date', 'is_active', 'full_name',
                         'birth_date', 'gender', 'times_listened', 'times_compositions_rated',
