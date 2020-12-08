@@ -1382,7 +1382,7 @@ class ConsoleView:
             13: lambda: self.controller.delete_playlist(get_int('id')),
             14: lambda: self.controller.delete_user(get_int('id')),
             15: lambda: self.controller.get_album(get_int('id')),
-            16: lambda: getters_interface(self.controller.get_album, albums_filter, pagination, albums_orders),
+            16: lambda: getters_interface(self.controller.get_albums, albums_filter, pagination, albums_orders),
             17: lambda: getters_interface(self.controller.get_artists, artists_filter, pagination, artists_orders),
             18: lambda: getters_interface(self.controller.get_compositions, compositions_filter, pagination, compositions_orders),
             19: lambda: getters_interface(self.controller.get_history, history_filter, pagination, history_orders),

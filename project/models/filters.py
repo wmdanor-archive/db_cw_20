@@ -277,7 +277,8 @@ class CollectionFilterCompositions:
         self.compositions_any = compositions_any
 
     def __str__(self):
-        return 'compositions_number_from: ' + to_str(self.compositions_number_from) + ' | compositions_number_to: ' +\
+        return 'toggle: ' + to_str(self.toggle) + \
+               '\ncompositions_number_from: ' + to_str(self.compositions_number_from) + ' | compositions_number_to: ' +\
             to_str(self.compositions_number_to) + '\ncompositions_list: ' + to_str(self.compositions_list) +\
             '\ncompositions_any: ' + to_str(self.compositions_any)
 
@@ -292,7 +293,8 @@ class CollectionFilterUsers:
         self.users_any = users_any
 
     def __str__(self):
-        return 'users_number_from: ' + to_str(self.users_number_from) + ' | users_number_to: ' + \
+        return 'toggle: ' + to_str(self.toggle) + \
+               '\nusers_number_from: ' + to_str(self.users_number_from) + ' | users_number_to: ' + \
                to_str(self.users_number_to) + '\nusers_list: ' + to_str(self.users_list) + \
                '\nusers_any: ' + to_str(self.users_any)
 
